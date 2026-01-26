@@ -5,6 +5,7 @@
 
 import authReducer from "../features/auth/store/slice/auth-slice";
 import usersReducer from "../features/auth/store/slice/users-slice";
+import sessionsReducer from "../features/sessions/store/slice/sessions-slice";
 
 import bannerReducer from "../features/master-data/store/slice/banner-slice";
 import brandReducer from "../features/master-data/store/slice/brand-slice";
@@ -39,6 +40,7 @@ export const reducers = {
   // Auth
   auth: authReducer,
   users: usersReducer,
+  sessions: sessionsReducer,
 
   // Master Data (Admin)
   banner: bannerReducer,

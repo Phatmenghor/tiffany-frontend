@@ -17,6 +17,8 @@ export const ROUTES = {
     ROOT: "/admin",
     DASHBOARD: "/admin",
     PROFILE: "/admin/profile",
+    SESSIONS: "/admin/sessions",
+    ADMIN_SESSIONS: "/admin/admin-sessions",
     USERS: "/admin/users",
     BRAND: "/admin/brand",
     BANNER: "/admin/banner",

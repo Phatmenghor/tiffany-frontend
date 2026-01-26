@@ -4,7 +4,12 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from "axios";
-import { getToken } from "../local-storage/token";
+import {
+  getToken,
+  getRefreshToken,
+  storeTokens,
+  clearAllTokens,
+} from "../local-storage/token";
 import { toast } from "sonner";
 
 // Define types
@@ -13,12 +18,33 @@ type RequestMetadata = {
   requestId: string;
 };
 
-// Extend AxiosRequestConfig to include metadata
+// Extend AxiosRequestConfig to include metadata and retry flag
 declare module "axios" {
   interface InternalAxiosRequestConfig {
     metadata?: RequestMetadata;
+    _retry?: boolean;
   }
 }
+
+// Flag to track if a token refresh is in progress
+let isRefreshing = false;
+// Queue of requests waiting for token refresh
+let failedQueue: Array<{
+  resolve: (value: unknown) => void;
+  reject: (reason?: unknown) => void;
+}> = [];
+
+// Process the queue after token refresh
+const processQueue = (error: unknown, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
 
 // Environment detection
 const isBrowser = typeof window !== "undefined";
@@ -439,13 +465,96 @@ const createAxiosInstance = (requiresAuth = false): AxiosInstance => {
 
       return response;
     },
-    (error: unknown) => {
+    async (error: unknown) => {
       const err = error as AxiosError;
+      const originalRequest = err.config;
 
-      if (err.response?.status === 401) {
-        toast.message(err.message);
-        window.location.href = "/login";
+      // Handle 401 Unauthorized with refresh token logic
+      if (err.response?.status === 401 && originalRequest && !originalRequest._retry) {
+        // Check if this is the refresh token endpoint itself failing
+        if (originalRequest.url?.includes("/api/v1/auth/refresh")) {
+          // Refresh token failed, clear tokens and redirect to login
+          clearAllTokens();
+          if (typeof window !== "undefined") {
+            toast.error("Session expired. Please login again.");
+            window.location.href = "/login";
+          }
+          return Promise.reject(error);
+        }
+
+        // If already refreshing, queue this request
+        if (isRefreshing) {
+          return new Promise((resolve, reject) => {
+            failedQueue.push({ resolve, reject });
+          })
+            .then((token) => {
+              if (originalRequest.headers) {
+                originalRequest.headers["Authorization"] = `Bearer ${token}`;
+              }
+              return axiosInstance(originalRequest);
+            })
+            .catch((refreshError) => {
+              return Promise.reject(refreshError);
+            });
+        }
+
+        originalRequest._retry = true;
+        isRefreshing = true;
+
+        // Try to refresh the token
+        const refreshToken = getRefreshToken();
+
+        if (!refreshToken) {
+          // No refresh token available, redirect to login
+          isRefreshing = false;
+          clearAllTokens();
+          if (typeof window !== "undefined") {
+            toast.error("Session expired. Please login again.");
+            window.location.href = "/login";
+          }
+          return Promise.reject(error);
+        }
+
+        try {
+          // Call refresh token endpoint
+          const response = await axios.post(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/refresh`,
+            { refreshToken },
+            { headers: { "Content-Type": "application/json" } }
+          );
+
+          const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
+            response.data.data;
+
+          // Store new tokens
+          storeTokens(newAccessToken, newRefreshToken);
+
+          // Update authorization header for original request
+          if (originalRequest.headers) {
+            originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
+          }
+
+          // Process queued requests
+          processQueue(null, newAccessToken);
+
+          logger.success("Token refreshed successfully");
+
+          // Retry original request with new token
+          return axiosInstance(originalRequest);
+        } catch (refreshError) {
+          // Refresh failed, clear tokens and redirect to login
+          processQueue(refreshError, null);
+          clearAllTokens();
+          if (typeof window !== "undefined") {
+            toast.error("Session expired. Please login again.");
+            window.location.href = "/login";
+          }
+          return Promise.reject(refreshError);
+        } finally {
+          isRefreshing = false;
+        }
       }
+
       // Get request ID from metadata
       const requestId = err.config?.metadata?.requestId || "unknown";
 

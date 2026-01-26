@@ -4,7 +4,15 @@ import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Edit, Loader2, Trash2, Lock, User } from "lucide-react";
+import {
+  Edit,
+  Loader2,
+  Trash2,
+  Lock,
+  User,
+  Monitor,
+  Link2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -30,9 +38,11 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/app-routes/routes";
 import { clearToken } from "@/utils/local-storage/token";
 import { CustomAvatar } from "@/components/shared/avator/custom-avator";
-import Loading from "@/components/shared/common/loading";
 import { isBase64Image, uploadImage } from "@/utils/common/upload-image";
 import { removeUserInfo } from "@/utils/local-storage/userInfo";
+import { TelegramSyncCard } from "@/components/shared/telegram/telegram-sync-card";
+import Link from "next/link";
+import { Loading } from "@/components/shared/common/loading";
 
 // Profile update schema
 const profileSchema = z.object({
@@ -54,6 +64,7 @@ export default function UserProfilePage() {
   const userProfile = useAppSelector(selectProfile);
   const isProfileLoading = useAppSelector(selectIsProfileLoading);
   const reduxError = useAppSelector(selectError);
+  const socialSync = useAppSelector((state) => state.auth.socialSync);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
@@ -381,6 +392,41 @@ export default function UserProfilePage() {
         {/* Security Section */}
         {activeSection === "security" && (
           <div className="space-y-4">
+            {/* Connected Accounts */}
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+                <Link2 className="h-4 w-4" />
+                Connected Accounts
+              </h3>
+              <TelegramSyncCard
+                socialSync={socialSync}
+                userType={userProfile?.userType || "CUSTOMER"}
+              />
+            </div>
+
+            {/* Active Sessions */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-foreground">
+                      Active Sessions
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Manage your active sessions and sign out from other
+                      devices
+                    </p>
+                  </div>
+                  <Link href="/admin/sessions">
+                    <Button variant="outline">
+                      <Monitor className="h-4 w-4 mr-2" />
+                      View Sessions
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Change Password */}
             <Card>
               <CardContent className="p-6">

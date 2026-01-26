@@ -75,3 +75,34 @@ export const deleteAccountService = createApiThunk<any, void>(
     return response.data.data;
   }
 );
+
+/**
+ * Customer registration request
+ */
+export interface CustomerRegisterRequest {
+  userIdentifier: string;
+  email?: string;
+  password: string;
+  userType?: string;
+  firstName?: string;
+  lastName?: string;
+  profileImageUrl?: string;
+  phoneNumber?: string;
+  address?: string;
+}
+
+/**
+ * Register customer thunk
+ * Creates a new customer account
+ */
+export const registerCustomerService = createApiThunk<any, CustomerRegisterRequest>(
+  "auth/registerCustomer",
+  async (registerData) => {
+    const response = await axiosClient.post("/api/v1/auth/register", {
+      ...registerData,
+      userType: "CUSTOMER",
+      accountStatus: "ACTIVE",
+    });
+    return response.data.data;
+  }
+);
