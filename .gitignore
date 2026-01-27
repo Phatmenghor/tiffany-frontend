@@ -6,6 +6,12 @@
 /.pnp
 .pnp.js
 .yarn/install-state.gz
+yarn.lock
+.yarnrc.yml
+.yarn/*
+# optional npm cache directory
+.npm
+/.cache 
 
 # testing
 /coverage
