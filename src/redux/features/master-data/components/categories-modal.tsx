@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Loading from "@/components/shared/common/loading";
 import { TextField } from "@/components/shared/form-field/text-field";
 import { SelectField } from "@/components/shared/form-field/select-field";
 import { CancelButton } from "@/components/shared/form-field/cancel-button";
@@ -37,6 +36,7 @@ import {
   clearError,
   clearSelectedCategories,
 } from "../store/slice/categories-slice";
+import { Loading } from "@/components/shared/common/loading";
 
 type Props = {
   mode: ModalMode;
@@ -72,7 +72,7 @@ export default function CategoriesModal({
     formState: { errors, isDirty },
   } = useForm<CreateCategoriesData>({
     resolver: zodResolver(
-      isCreate ? createCategoriesSchema : updateCategoriesSchema
+      isCreate ? createCategoriesSchema : updateCategoriesSchema,
     ),
     defaultValues: {
       name: "",
@@ -101,7 +101,7 @@ export default function CategoriesModal({
 
       try {
         const resultAction = await dispatch(
-          fetchCategoriesByIdService(categoriesId)
+          fetchCategoriesByIdService(categoriesId),
         );
 
         if (fetchCategoriesByIdService.fulfilled.match(resultAction)) {
@@ -140,7 +140,7 @@ export default function CategoriesModal({
         } catch (uploadError) {
           console.error("Error uploading categories image:", uploadError);
           showToast.error(
-            "Failed to upload categories image. Please try again."
+            "Failed to upload categories image. Please try again.",
           );
           return;
         } finally {
@@ -163,7 +163,7 @@ export default function CategoriesModal({
           updateCategoriesService({
             categoriesId: categoriesId!,
             categoriesData: payload,
-          })
+          }),
         ).unwrap();
         showToast.success("Categories updated successfully");
         handleClose();
@@ -171,7 +171,7 @@ export default function CategoriesModal({
     } catch (error: any) {
       showToast.error(
         error?.message ||
-          `Failed to ${isCreate ? "create" : "update"} categories`
+          `Failed to ${isCreate ? "create" : "update"} categories`,
       );
     }
   };
