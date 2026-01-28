@@ -20,6 +20,7 @@ export const ROUTES = {
     SESSIONS: "/admin/sessions",
     ADMIN_SESSIONS: "/admin/admin-sessions",
     USERS: "/admin/users",
+    ROLES: "/admin/users/roles",
     BRAND: "/admin/brand",
     BANNER: "/admin/banner",
     CATEGORIES: "/admin/categories",
@@ -58,10 +59,20 @@ export const SIDEBAR_MENU: MenuItem[] = [
     href: ROUTES.ADMIN.DASHBOARD,
     icon: Home,
   },
+
   {
-    title: "User",
-    href: ROUTES.ADMIN.USERS,
+    title: "Users",
     icon: Users,
+    items: [
+      {
+        title: "All Users",
+        href: ROUTES.ADMIN.USERS,
+      },
+      {
+        title: "Roles",
+        href: ROUTES.ADMIN.ROLES,
+      },
+    ],
   },
 
   {

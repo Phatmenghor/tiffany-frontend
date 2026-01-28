@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Loading from "@/components/shared/common/loading";
 import { TextField } from "@/components/shared/form-field/text-field";
 import { TextareaField } from "@/components/shared/form-field/text-area-field";
 import { SelectField } from "@/components/shared/form-field/select-field";
@@ -50,6 +49,7 @@ import {
   ACCOUNT_STATUS_CREATE_UPDATE,
   USER_BUSINESS_ROLE_CREATE_UPDATE,
 } from "@/constants/status/create-update-status";
+import { Loading } from "@/components/shared/common/loading";
 
 type Props = {
   mode: ModalMode;
@@ -84,7 +84,7 @@ export default function UserBusinessModal({
     formState: { errors, isDirty },
   } = useForm<UserFormData>({
     resolver: zodResolver(
-      isCreate ? createUserSchema : updateUserSchema
+      isCreate ? createUserSchema : updateUserSchema,
     ) as any,
     defaultValues: {
       id: "",
@@ -187,7 +187,7 @@ export default function UserBusinessModal({
         showToast.success(
           `User business "${
             result.userIdentifier || result.email
-          }" created successfully`
+          }" created successfully`,
         );
         handleClose();
       } else {
@@ -203,18 +203,18 @@ export default function UserBusinessModal({
         };
 
         const result = await dispatch(
-          updateUserService({ userId: data.id, userData: payload })
+          updateUserService({ userId: data.id, userData: payload }),
         ).unwrap();
         showToast.success(
           `User business "${
             result.fullName || result.email
-          }" updated successfully`
+          }" updated successfully`,
         );
         handleClose();
       }
     } catch (error: any) {
       showToast.error(
-        error || `Failed to ${isCreate ? "create" : "update"} user business`
+        error || `Failed to ${isCreate ? "create" : "update"} user business`,
       );
     }
   };

@@ -4,6 +4,7 @@
  */
 
 import authReducer from "../features/auth/store/slice/auth-slice";
+import roleSlice from "../features/auth/store/slice/role-slice";
 import usersReducer from "../features/auth/store/slice/users-slice";
 import sessionsReducer from "../features/sessions/store/slice/sessions-slice";
 
@@ -28,6 +29,7 @@ import scrollReducer from "../features/main/store/slice/scroll-slice";
 import cartReducer from "../features/main/store/slice/cart-slice";
 import wishlistReducer from "../features/main/store/slice/wishlist-slice";
 import globalSettingsReducer from "./slices/global-settings-slice";
+import { ro } from "date-fns/locale";
 
 /**
  * Root reducer configuration
@@ -40,6 +42,7 @@ export const reducers = {
   // Auth
   auth: authReducer,
   users: usersReducer,
+  roles: roleSlice,
   sessions: sessionsReducer,
 
   // Master Data (Admin)
