@@ -9,9 +9,9 @@ interface CustomerAvatarProps {
   name?: string;
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
-  variant?: "avatar" | "banner";
+  variant?: "avatar" | "banner" | "simple";
   bannerHeight?: "sm" | "md" | "lg" | "xl";
-  enableImagePreview?: boolean; // New prop to control hover preview
+  enableImagePreview?: boolean;
 }
 
 export const CustomAvatar: React.FC<CustomerAvatarProps> = ({
@@ -21,7 +21,7 @@ export const CustomAvatar: React.FC<CustomerAvatarProps> = ({
   className = "",
   variant = "avatar",
   bannerHeight = "md",
-  enableImagePreview = true, // Default to true for backward compatibility
+  enableImagePreview = true,
 }) => {
   const [showPreview, setShowPreview] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
@@ -43,6 +43,14 @@ export const CustomAvatar: React.FC<CustomerAvatarProps> = ({
     md: "h-12",
     lg: "h-16",
     xl: "h-20",
+  };
+
+  // Simple variant sizes (square with rounded corners)
+  const simpleSizes = {
+    sm: "h-8 w-8",
+    md: "h-10 w-10",
+    lg: "h-12 w-12",
+    xl: "h-16 w-16",
   };
 
   const fallbackText = name?.charAt(0)?.toUpperCase() || "B";
@@ -84,6 +92,89 @@ export const CustomAvatar: React.FC<CustomerAvatarProps> = ({
     }
   };
 
+  // Render simple variant (square with rounded-lg corners - radius 8)
+  if (variant === "simple") {
+    const content = (
+      <div
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className="inline-block"
+      >
+        <div
+          className={`${
+            simpleSizes[size]
+          } rounded overflow-hidden border-[1.5px] border-border bg-muted ${
+            imageUrl && enableImagePreview
+              ? "cursor-pointer hover:border-primary/50 hover:scale-110"
+              : ""
+          } transition-all ${className}`}
+        >
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={name || "User"}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-primary/10 dark:bg-primary/20">
+              <span className="text-primary font-semibold text-sm">
+                {fallbackText}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+
+    if (!enableImagePreview) {
+      return content;
+    }
+
+    return (
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogTrigger asChild>{content}</DialogTrigger>
+
+        {imageUrl && (
+          <DialogContent
+            className="max-w-fit border-none bg-transparent shadow-none p-0"
+            onMouseEnter={handlePreviewMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
+            <div className="relative bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-2xl border border-border">
+              <div className="flex flex-col items-center gap-4">
+                {imageLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-gray-900/80 rounded-2xl z-10">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                      <p className="text-sm text-muted-foreground">
+                        Loading image...
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                <img
+                  src={imageUrl}
+                  alt={name || "User"}
+                  className="max-w-[70vw] max-h-[70vh] w-auto h-auto object-contain rounded-lg"
+                  onLoad={() => setImageLoading(false)}
+                  onError={() => setImageLoading(false)}
+                  style={{
+                    opacity: imageLoading ? 0 : 1,
+                    transition: "opacity 0.3s",
+                  }}
+                />
+                <p className="text-lg font-semibold text-center text-gray-900 dark:text-white">
+                  {name || "User"}
+                </p>
+              </div>
+            </div>
+          </DialogContent>
+        )}
+      </Dialog>
+    );
+  }
+
   // Render banner variant
   if (variant === "banner") {
     const content = (
@@ -118,7 +209,6 @@ export const CustomAvatar: React.FC<CustomerAvatarProps> = ({
       </div>
     );
 
-    // If preview is disabled, just return the content without Dialog wrapper
     if (!enableImagePreview) {
       return content;
     }

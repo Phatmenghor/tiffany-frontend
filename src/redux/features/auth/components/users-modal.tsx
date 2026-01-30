@@ -5,7 +5,6 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TextField } from "@/components/shared/form-field/text-field";
-import { TextareaField } from "@/components/shared/form-field/text-area-field";
 import { SelectField } from "@/components/shared/form-field/select-field";
 import { CancelButton } from "@/components/shared/form-field/cancel-button";
 import { SubmitButton } from "@/components/shared/form-field/submid-button";
@@ -36,19 +35,9 @@ import {
 import { FormHeader } from "@/components/shared/form-field/form-header";
 import { FormBody } from "@/components/shared/form-field/form-body";
 import { FormFooter } from "@/components/shared/form-field/form-footer";
-import {
-  getArrayFieldError,
-  getFieldError,
-} from "@/utils/common/get-field-error";
-import {
-  AccountStatus,
-  ModalMode,
-  UserGropeType,
-} from "@/constants/status/status";
-import {
-  ACCOUNT_STATUS_CREATE_UPDATE,
-  USER_BUSINESS_ROLE_CREATE_UPDATE,
-} from "@/constants/status/create-update-status";
+import { getArrayFieldError } from "@/utils/common/get-field-error";
+import { AccountStatus, ModalMode } from "@/constants/status/status";
+import { USER_CREATE_UPDATE } from "@/constants/status/create-update-status";
 import { Loading } from "@/components/shared/common/loading";
 
 type Props = {
@@ -58,12 +47,7 @@ type Props = {
   isOpen: boolean;
 };
 
-export default function UserBusinessModal({
-  isOpen,
-  onClose,
-  userId,
-  mode,
-}: Props) {
+export default function UsersModal({ isOpen, onClose, userId, mode }: Props) {
   const isCreate = mode === ModalMode.CREATE_MODE;
   const [showPassword, setShowPassword] = useState(false);
 
@@ -89,17 +73,13 @@ export default function UserBusinessModal({
     defaultValues: {
       id: "",
       userIdentifier: "",
+      password: "",
       email: "",
       firstName: "",
       lastName: "",
       phoneNumber: "",
-      password: "",
-      userType: UserGropeType.BUSINESS_USER,
-      roles: [],
       accountStatus: AccountStatus.ACTIVE,
-      position: "",
-      address: "",
-      notes: "",
+      role: "",
     },
     mode: "onChange",
   });
@@ -124,14 +104,11 @@ export default function UserBusinessModal({
             lastName: data.lastName || "",
             phoneNumber: data.phoneNumber || "",
             accountStatus: data.accountStatus,
-            roles: Array.isArray(data.roles) ? data.roles : [],
-            position: data.position || "",
-            address: data.address || "",
-            notes: data.notes || "",
+            role: data.role || "",
           });
         }
       } catch (error) {
-        console.error("Error fetching user business data:", error);
+        console.error("Error fetching user data:", error);
       }
     };
 
@@ -148,12 +125,8 @@ export default function UserBusinessModal({
         lastName: "",
         phoneNumber: "",
         password: "",
-        userType: UserGropeType.BUSINESS_USER,
-        roles: [],
+        role: "",
         accountStatus: AccountStatus.ACTIVE,
-        position: "",
-        address: "",
-        notes: "",
       });
     }
   }, [isOpen, isCreate, reset]);
@@ -170,22 +143,19 @@ export default function UserBusinessModal({
       if (isCreate) {
         const payload: CreateUserRequest = {
           userIdentifier: data.userIdentifier!,
-          email: data.email,
+          email: data?.email || "",
           password: data.password!,
           firstName: data.firstName,
           lastName: data.lastName,
           phoneNumber: data.phoneNumber,
-          userType: data.userType!,
           accountStatus: data.accountStatus,
-          roles: data.roles,
-          position: data.position || undefined,
-          address: data.address || undefined,
-          notes: data.notes || undefined,
+          role: data.role,
         };
 
         const result = await dispatch(createUserService(payload)).unwrap();
+
         showToast.success(
-          `User business "${
+          `User "${
             result.userIdentifier || result.email
           }" created successfully`,
         );
@@ -193,28 +163,25 @@ export default function UserBusinessModal({
       } else {
         const payload: UpdateUserRequest = {
           firstName: data.firstName,
+          email: data?.email || "",
           lastName: data.lastName,
           phoneNumber: data.phoneNumber,
           accountStatus: data.accountStatus,
-          roles: data.roles,
-          position: data.position || undefined,
-          address: data.address || undefined,
-          notes: data.notes || undefined,
+          role: data.role,
         };
 
         const result = await dispatch(
           updateUserService({ userId: data.id, userData: payload }),
         ).unwrap();
+
         showToast.success(
-          `User business "${
-            result.fullName || result.email
-          }" updated successfully`,
+          `User "${result.fullName || result.email}" updated successfully`,
         );
         handleClose();
       }
     } catch (error: any) {
       showToast.error(
-        error || `Failed to ${isCreate ? "create" : "update"} user business`,
+        error || `Failed to ${isCreate ? "create" : "update"} user`,
       );
     }
   };
@@ -232,11 +199,11 @@ export default function UserBusinessModal({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="w-[90%] max-w-4xl max-h-[90vh] p-0 flex flex-col">
         <FormHeader
-          title={isCreate ? "Create New User Business" : "Edit User Business"}
+          title={isCreate ? "Create New User" : "Edit User"}
           description={
             isCreate
-              ? "Fill out the form to create a new user business account"
-              : "Update user business information below"
+              ? "Fill out the form to create a new user account"
+              : "Update user information below"
           }
           avatarName={userIdentifier || email}
           avatarImageUrl={userData?.profileImageUrl}
@@ -317,27 +284,6 @@ export default function UserBusinessModal({
                   error={errors.phoneNumber}
                 />
 
-                <TextField
-                  control={control}
-                  name="position"
-                  label="Position"
-                  placeholder="Enter position (optional)"
-                  disabled={isSubmitting}
-                  error={errors.position}
-                />
-
-                {/* Changed: col-span-2 (always full width, no responsive) */}
-                <div className="col-span-2">
-                  <TextField
-                    control={control}
-                    name="address"
-                    label="Address"
-                    placeholder="Enter address (optional)"
-                    disabled={isSubmitting}
-                    error={errors.address}
-                  />
-                </div>
-
                 {isCreate && (
                   <PasswordField
                     control={control}
@@ -354,42 +300,21 @@ export default function UserBusinessModal({
 
                 <SelectField
                   control={control}
-                  name="roles"
+                  name="role"
                   label="User Role"
                   placeholder="Select user role"
-                  options={USER_BUSINESS_ROLE_CREATE_UPDATE}
+                  options={USER_CREATE_UPDATE}
                   required
                   disabled={isSubmitting}
-                  error={getArrayFieldError(errors.roles)}
+                  error={getArrayFieldError(errors.role)}
                   onValueChange={(value) => {
-                    setValue("roles", [value], {
+                    setValue("role", value, {
                       shouldDirty: true,
                       shouldValidate: true,
                     });
                   }}
                 />
-
-                <SelectField
-                  control={control}
-                  name="accountStatus"
-                  label="Account Status"
-                  placeholder="Select account status"
-                  options={ACCOUNT_STATUS_CREATE_UPDATE}
-                  required
-                  disabled={isSubmitting}
-                  error={errors.accountStatus}
-                />
               </div>
-
-              <TextareaField
-                control={control}
-                name="notes"
-                label="Notes"
-                placeholder="Enter any additional notes (optional)"
-                rows={5}
-                disabled={isSubmitting}
-                error={errors.notes}
-              />
             </FormBody>
 
             <FormFooter

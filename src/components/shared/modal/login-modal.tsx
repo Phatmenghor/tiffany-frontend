@@ -24,14 +24,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuthState } from "@/redux/features/auth/store/state/auth-state";
-import {
-  loginService,
-  registerCustomerService,
-} from "@/redux/features/auth/store/thunks/auth-thunks";
-import { telegramAuthenticateService } from "@/redux/features/auth/store/thunks/social-auth-thunks";
+import { loginService } from "@/redux/features/auth/store/thunks/auth-thunks";
 import { showToast } from "@/components/shared/common/show-toast";
-import { TelegramLoginButton } from "@/components/shared/telegram/telegram-login-widget";
-import { TelegramAuthData } from "@/redux/features/auth/store/models/request/social-auth-request";
 import { SocialAuthConfig } from "@/constants/app-resource/default/default";
 import { useAppSelector } from "@/redux/store";
 
@@ -49,7 +43,10 @@ const loginSchema = z.object({
 // Register form schema
 const registerSchema = z
   .object({
-    userIdentifier: z.string().min(1, "Email is required").email("Invalid email"),
+    userIdentifier: z
+      .string()
+      .min(1, "Email is required")
+      .email("Invalid email"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string().min(8, "Please confirm your password"),
     firstName: z.string().optional(),
@@ -68,10 +65,8 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
-  const [isTelegramLoading, setIsTelegramLoading] = useState(false);
 
   const { isLoading, dispatch } = useAuthState();
-  const isSocialLoading = useAppSelector((state) => state.auth.isSocialLoading);
 
   // Login form
   const loginForm = useForm<LoginFormData>({
@@ -102,8 +97,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
         loginService({
           userIdentifier: values.userIdentifier,
           password: values.password,
-          userType: "CUSTOMER",
-        })
+        }),
       ).unwrap();
 
       showToast.success("Welcome! You've successfully logged in.");
@@ -118,17 +112,6 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
   // Handle register submit
   async function onRegisterSubmit(values: RegisterFormData) {
     try {
-      await dispatch(
-        registerCustomerService({
-          userIdentifier: values.userIdentifier,
-          email: values.userIdentifier,
-          password: values.password,
-          firstName: values.firstName,
-          lastName: values.lastName,
-          phoneNumber: values.phoneNumber,
-        })
-      ).unwrap();
-
       showToast.success("Account created! Please log in.");
       setActiveTab("login");
       registerForm.reset();
@@ -138,43 +121,14 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
     }
   }
 
-  // Handle Telegram authentication
-  const handleTelegramAuth = async (telegramData: TelegramAuthData) => {
-    setIsTelegramLoading(true);
-    try {
-      const result = await dispatch(
-        telegramAuthenticateService({
-          telegramData,
-          userType: "CUSTOMER",
-        })
-      ).unwrap();
-
-      if (result) {
-        if (result.isNewUser) {
-          showToast.success("Welcome! Your account has been created.");
-        } else {
-          showToast.success("Welcome back!");
-        }
-        onOpenChange(false);
-        window.location.reload();
-      }
-    } catch (err: any) {
-      showToast.error(err || "Telegram login failed. Please try again.");
-    } finally {
-      setIsTelegramLoading(false);
-    }
-  };
-
   const handleKeyPress = (
     e: React.KeyboardEvent<HTMLInputElement>,
-    submitFn: () => void
+    submitFn: () => void,
   ) => {
     if (e.key === "Enter") {
       submitFn();
     }
   };
-
-  const isAnyLoading = isLoading || isSocialLoading || isTelegramLoading;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -222,10 +176,12 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                             {...field}
                             type="text"
                             placeholder="name@example.com"
-                            disabled={isAnyLoading}
                             className="pl-10"
                             onKeyDown={(e) =>
-                              handleKeyPress(e, loginForm.handleSubmit(onLoginSubmit))
+                              handleKeyPress(
+                                e,
+                                loginForm.handleSubmit(onLoginSubmit),
+                              )
                             }
                           />
                         </div>
@@ -251,17 +207,18 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                             {...field}
                             type={showPassword ? "text" : "password"}
                             placeholder="Enter your password"
-                            disabled={isAnyLoading}
                             className="pl-10 pr-10"
                             onKeyDown={(e) =>
-                              handleKeyPress(e, loginForm.handleSubmit(onLoginSubmit))
+                              handleKeyPress(
+                                e,
+                                loginForm.handleSubmit(onLoginSubmit),
+                              )
                             }
                           />
                           <button
                             type="button"
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                             onClick={() => setShowPassword(!showPassword)}
-                            disabled={isAnyLoading}
                           >
                             {showPassword ? (
                               <EyeOff className="h-4 w-4" />
@@ -276,8 +233,10 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                   )}
                 />
 
-                <Button type="submit" className="w-full" disabled={isAnyLoading}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button type="submit" className="w-full">
+                  {isLoading && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   {isLoading ? "Signing in..." : "Sign in"}
                 </Button>
               </form>
@@ -294,16 +253,6 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                 </span>
               </div>
             </div>
-
-            {/* Telegram Login */}
-            <TelegramLoginButton
-              botName={SocialAuthConfig.TELEGRAM_BOT_NAME}
-              botId={SocialAuthConfig.TELEGRAM_BOT_ID}
-              onAuth={handleTelegramAuth}
-              disabled={isAnyLoading}
-              loading={isTelegramLoading}
-              className="w-full"
-            />
           </TabsContent>
 
           {/* Register Tab */}
@@ -327,7 +276,6 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                             <Input
                               {...field}
                               placeholder="John"
-                              disabled={isAnyLoading}
                               className="pl-10"
                             />
                           </div>
@@ -344,11 +292,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                       <FormItem>
                         <FormLabel>Last Name</FormLabel>
                         <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="Doe"
-                            disabled={isAnyLoading}
-                          />
+                          <Input {...field} placeholder="Doe" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -372,7 +316,6 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                             {...field}
                             type="email"
                             placeholder="name@example.com"
-                            disabled={isAnyLoading}
                             className="pl-10"
                           />
                         </div>
@@ -395,7 +338,6 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                             {...field}
                             type="tel"
                             placeholder="+855 12 345 678"
-                            disabled={isAnyLoading}
                             className="pl-10"
                           />
                         </div>
@@ -421,14 +363,12 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                             {...field}
                             type={showPassword ? "text" : "password"}
                             placeholder="Min 8 characters"
-                            disabled={isAnyLoading}
                             className="pl-10 pr-10"
                           />
                           <button
                             type="button"
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                             onClick={() => setShowPassword(!showPassword)}
-                            disabled={isAnyLoading}
                           >
                             {showPassword ? (
                               <EyeOff className="h-4 w-4" />
@@ -459,7 +399,6 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                             {...field}
                             type={showConfirmPassword ? "text" : "password"}
                             placeholder="Confirm your password"
-                            disabled={isAnyLoading}
                             className="pl-10 pr-10"
                           />
                           <button
@@ -468,7 +407,6 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                             onClick={() =>
                               setShowConfirmPassword(!showConfirmPassword)
                             }
-                            disabled={isAnyLoading}
                           >
                             {showConfirmPassword ? (
                               <EyeOff className="h-4 w-4" />
@@ -483,8 +421,10 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                   )}
                 />
 
-                <Button type="submit" className="w-full" disabled={isAnyLoading}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button type="submit" className="w-full">
+                  {isLoading && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   {isLoading ? "Creating account..." : "Create Account"}
                 </Button>
               </form>
@@ -501,18 +441,6 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                 </span>
               </div>
             </div>
-
-            {/* Telegram Register */}
-            <TelegramLoginButton
-              botName={SocialAuthConfig.TELEGRAM_BOT_NAME}
-              botId={SocialAuthConfig.TELEGRAM_BOT_ID}
-              onAuth={handleTelegramAuth}
-              disabled={isAnyLoading}
-              loading={isTelegramLoading}
-              className="w-full"
-            >
-              Register with Telegram
-            </TelegramLoginButton>
           </TabsContent>
         </Tabs>
       </DialogContent>

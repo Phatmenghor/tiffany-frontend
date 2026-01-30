@@ -10,11 +10,7 @@ import {
 import { ActionButton } from "@/components/shared/button/action-button";
 
 interface UserTableHandlers {
-  handleEditUser: (user: UserResponseModel) => void;
   handleViewUserDetail: (user: UserResponseModel) => void;
-  handleResetPassword: (user: UserResponseModel) => void;
-  handleDeleteUser: (user: UserResponseModel) => void;
-  handleToggleStatus: (user: UserResponseModel) => void;
 }
 
 interface UserTableOptions {
@@ -22,16 +18,11 @@ interface UserTableOptions {
   handlers: UserTableHandlers;
 }
 
-export const userPlatformTableColumns = ({
+export const customerTableColumns = ({
   data,
   handlers,
 }: UserTableOptions): TableColumn<UserResponseModel>[] => {
-  const {
-    handleEditUser,
-    handleViewUserDetail,
-    handleResetPassword,
-    handleDeleteUser,
-  } = handlers;
+  const { handleViewUserDetail } = handlers;
 
   return [
     {
@@ -56,6 +47,7 @@ export const userPlatformTableColumns = ({
             imageUrl={user.profileImageUrl}
             name={user?.firstName}
             size="lg"
+            variant="simple"
           />
         );
       },
@@ -108,24 +100,7 @@ export const userPlatformTableColumns = ({
         </span>
       ),
     },
-    {
-      key: "roles",
-      label: "Role",
-      minWidth: "10px",
-      maxWidth: "400px",
-      truncate: true,
-      render: (user) => (
-        <>
-          {user.roles?.length > 0
-            ? user.roles.map((role: string) => (
-                <span key={role} className="text-xs text-muted-foreground">
-                  {role}
-                </span>
-              ))
-            : "---"}
-        </>
-      ),
-    },
+
     {
       key: "accountStatus",
       label: "Account Status",
@@ -160,22 +135,6 @@ export const userPlatformTableColumns = ({
             icon={<Eye className="w-4 h-4" />}
             tooltip="View Details"
             onClick={() => handleViewUserDetail(user)}
-          />
-          <ActionButton
-            icon={<Edit className="w-4 h-4" />}
-            tooltip="Edit User"
-            onClick={() => handleEditUser(user)}
-          />
-          <ActionButton
-            icon={<RotateCw className="w-4 h-4" />}
-            tooltip="Reset Password"
-            onClick={() => handleResetPassword(user)}
-          />
-          <ActionButton
-            icon={<Trash className="w-4 h-4" />}
-            tooltip="Delete User"
-            onClick={() => handleDeleteUser(user)}
-            variant="destructive"
           />
         </div>
       ),

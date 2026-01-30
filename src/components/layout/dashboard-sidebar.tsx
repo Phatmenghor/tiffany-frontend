@@ -27,8 +27,7 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
 
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     "Master Data": true,
-    HR: true,
-    Business: true,
+    Users: true,
   });
   const [collapsed, setCollapsed] = useState(false);
 

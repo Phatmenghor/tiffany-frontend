@@ -9,7 +9,7 @@ import { CardHeaderSection } from "@/components/layout/card-header-section";
 import { CustomSelect } from "@/components/shared/common/custom-select";
 import ResetPasswordModal from "@/components/shared/modal/reset-password-modal";
 import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
-import { userPlatformTableColumns } from "@/redux/features/auth/table/users-platform-table";
+import { userTableColumns } from "@/redux/features/auth/table/users-table";
 import { DataTableWithPagination } from "@/components/shared/common/data-table";
 import { showToast } from "@/components/shared/common/show-toast";
 import { useUsersState } from "@/redux/features/auth/store/state/users-state";
@@ -17,36 +17,25 @@ import { usePagination } from "@/redux/store/use-pagination";
 import {
   deleteUserService,
   fetchAllUsersService,
-  toggleUserStatusService,
 } from "@/redux/features/auth/store/thunks/users-thunks";
 import {
-  setAccountStatusFilter,
   setPageNo,
   setRoleFilter,
   setSearchFilter,
   resetState,
 } from "@/redux/features/auth/store/slice/users-slice";
 import { UserResponseModel } from "@/redux/features/auth/store/models/response/users-response";
-import {
-  ACCOUNT_STATUS_FILTER,
-  USER_BUSINESS_ROLE_FILTER,
-} from "@/constants/status/filter-status";
 import { useAdminCleanup } from "@/hooks/use-cleanup-on-unmount";
-import {
-  AccountStatus,
-  ModalMode,
-  UserGropeType,
-  UserRole,
-} from "@/constants/status/status";
-import UserBusinessModal from "@/redux/features/auth/components/user-business-modal";
-import { UserBusinessDetailModal } from "@/redux/features/auth/components/user-business-detail-modal";
+import { ModalMode, UserRole } from "@/constants/status/status";
+import UsersModal from "@/redux/features/auth/components/users-modal";
+import { UsersDetailModal } from "@/redux/features/auth/components/users-detail-modal";
 import { AppDefault } from "@/constants/app-resource/default/default";
 import { setGlobalPageSize } from "@/redux/store/slices/global-settings-slice";
 import { selectGlobalPageSize } from "@/redux/store/selectors/global-settings-selectors";
 import { useAppSelector } from "@/redux/store";
+import { USER_ROLE_FILTER } from "@/constants/status/filter-status";
 
-export default function UserBusinessPage() {
-  // Clean up state when leaving admin area (performance optimization)
+export default function UsersPage() {
   useAdminCleanup(resetState);
 
   const searchParams = useSearchParams();
@@ -63,7 +52,6 @@ export default function UserBusinessPage() {
     dispatch,
   } = useUsersState();
 
-  // Local UI state for modals only
   const [modalState, setModalState] = useState({
     isOpen: false,
     mode: ModalMode.CREATE_MODE,
@@ -72,12 +60,12 @@ export default function UserBusinessPage() {
 
   const [detailModalState, setDetailModalState] = useState({
     isOpen: false,
-    userBusinessId: "",
+    userId: "",
   });
 
   const [resetPasswordState, setResetPasswordState] = useState({
     isOpen: false,
-    userBusinessId: "",
+    userId: "",
     userName: "",
   });
 
@@ -86,7 +74,6 @@ export default function UserBusinessPage() {
     user: null as UserResponseModel | null,
   });
 
-  // Global page size from global settings (synced across all admin pages)
   const globalPageSize = useAppSelector(selectGlobalPageSize);
 
   const debouncedSearch = useDebounce(filters.search, 400);
@@ -112,22 +99,13 @@ export default function UserBusinessPage() {
         search: debouncedSearch,
         pageNo: filters.pageNo,
         pageSize: globalPageSize,
-        roles: filters.role === UserRole.ALL ? [] : [filters.role],
-        userTypes: [UserGropeType.BUSINESS_USER],
-        accountStatus:
-          filters.accountStatus === AccountStatus.ALL
-            ? []
-            : [filters.accountStatus],
+        roles:
+          filters.role === UserRole.ALL
+            ? [UserRole.DEVELOPER, UserRole.ADMIN, UserRole.STAFF]
+            : [filters.role],
       }),
     );
-  }, [
-    dispatch,
-    debouncedSearch,
-    filters.accountStatus,
-    filters.role,
-    filters.pageNo,
-    globalPageSize,
-  ]);
+  }, [dispatch, debouncedSearch, filters.role, filters.pageNo, globalPageSize]);
 
   // Event handlers
   const handleCreateUser = () => {
@@ -149,14 +127,14 @@ export default function UserBusinessPage() {
   const handleViewDetail = (user: UserResponseModel) => {
     setDetailModalState({
       isOpen: true,
-      userBusinessId: user.id || "",
+      userId: user.id || "",
     });
   };
 
   const handleResetPassword = (user: UserResponseModel) => {
     setResetPasswordState({
       isOpen: true,
-      userBusinessId: user.id || "",
+      userId: user.id || "",
       userName: user.userIdentifier || "",
     });
   };
@@ -168,31 +146,19 @@ export default function UserBusinessPage() {
     });
   };
 
-  const handleToggleStatus = async (user: UserResponseModel) => {
-    if (!user?.id) return;
-
-    try {
-      await dispatch(toggleUserStatusService(user)).unwrap();
-      showToast.success("User business status updated successfully");
-    } catch (error: any) {
-      showToast.error(error || "Failed to update user business status");
-    }
-  };
-
   const tableHandlers = useMemo(
     () => ({
       handleEditUser,
       handleViewUserDetail: handleViewDetail,
       handleResetPassword,
       handleDeleteUser,
-      handleToggleStatus,
     }),
     [],
   );
 
   const columns = useMemo(
     () =>
-      userPlatformTableColumns({
+      userTableColumns({
         data: usersData,
         handlers: tableHandlers,
       }),
@@ -201,10 +167,6 @@ export default function UserBusinessPage() {
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(setSearchFilter(e.target.value));
-  };
-
-  const handleStatusChange = (status: AccountStatus) => {
-    dispatch(setAccountStatusFilter(status));
   };
 
   const handleRoleChange = (role: UserRole) => {
@@ -217,8 +179,8 @@ export default function UserBusinessPage() {
   };
 
   const handlePageSizeChange = (size: number) => {
-    dispatch(setGlobalPageSize(size)); // Update global settings (syncs to all pages)
-    dispatch(setPageNo(1)); // Reset to first page
+    dispatch(setGlobalPageSize(size));
+    dispatch(setPageNo(1));
   };
 
   const handleDelete = async () => {
@@ -257,14 +219,14 @@ export default function UserBusinessPage() {
   const closeDetailModal = () => {
     setDetailModalState({
       isOpen: false,
-      userBusinessId: "",
+      userId: "",
     });
   };
 
   const closeResetPasswordModal = () => {
     setResetPasswordState({
       isOpen: false,
-      userBusinessId: "",
+      userId: "",
       userName: "",
     });
   };
@@ -282,11 +244,11 @@ export default function UserBusinessPage() {
         <CardHeaderSection
           breadcrumbs={[
             { label: "Dashboard", href: ROUTES.ADMIN.ROOT },
-            { label: "Platform Users", href: "" },
+            { label: "Users", href: "" },
           ]}
-          title="Business Users"
+          title="Users Management"
           searchValue={filters.search}
-          searchPlaceholder="Search users business..."
+          searchPlaceholder="Search users..."
           buttonTooltip="Create a new users"
           buttonIcon={<Plus className="w-3 h-3" />}
           buttonText="New"
@@ -295,20 +257,11 @@ export default function UserBusinessPage() {
         >
           <div className="flex items-center gap-3">
             <CustomSelect
-              options={ACCOUNT_STATUS_FILTER}
-              value={filters.accountStatus}
-              placeholder="All Status"
-              onValueChange={(value) =>
-                handleStatusChange(value as AccountStatus)
-              }
-              label="Account Status"
-            />
-            <CustomSelect
-              options={USER_BUSINESS_ROLE_FILTER}
+              options={USER_ROLE_FILTER}
               value={filters.role}
               placeholder="All Roles"
               onValueChange={(value) => handleRoleChange(value as UserRole)}
-              label="Platform Role"
+              label="User Role"
             />
           </div>
         </CardHeaderSection>
@@ -318,7 +271,7 @@ export default function UserBusinessPage() {
           data={usersContent}
           columns={columns}
           loading={isLoading}
-          emptyMessage="No users business found"
+          emptyMessage="No users found"
           getRowKey={(user) => user.id}
           currentPage={filters.pageNo}
           totalElements={pagination.totalElements}
@@ -331,7 +284,7 @@ export default function UserBusinessPage() {
       </div>
 
       {/* Modals Add/Edit */}
-      <UserBusinessModal
+      <UsersModal
         isOpen={modalState.isOpen}
         onClose={closeModal}
         userId={modalState.userId}
@@ -339,8 +292,8 @@ export default function UserBusinessPage() {
       />
 
       {/* Modals User Detail */}
-      <UserBusinessDetailModal
-        userId={detailModalState.userBusinessId}
+      <UsersDetailModal
+        userId={detailModalState.userId}
         isOpen={detailModalState.isOpen}
         onClose={closeDetailModal}
       />
@@ -350,7 +303,7 @@ export default function UserBusinessPage() {
         isOpen={resetPasswordState.isOpen}
         userName={resetPasswordState.userName}
         onClose={closeResetPasswordModal}
-        userId={resetPasswordState.userBusinessId}
+        userId={resetPasswordState.userId}
       />
 
       {/* Modals Delete User */}
@@ -360,9 +313,9 @@ export default function UserBusinessPage() {
         onDelete={handleDelete}
         title="Delete User"
         description={`Are you sure you want to delete this user ${
-          deleteState.user?.userIdentifier || deleteState.user?.email
+          deleteState.user?.fullName
         }?`}
-        itemName={deleteState.user?.fullName || deleteState.user?.email}
+        itemName={deleteState.user?.fullName}
         isSubmitting={operations.isDeleting}
       />
     </div>

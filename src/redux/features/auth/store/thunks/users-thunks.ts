@@ -22,10 +22,10 @@ export const fetchAllUsersService = createApiThunk<any, AllUserRequest>(
   async (params) => {
     const response = await axiosClientWithAuth.post(
       "/api/v1/users/all",
-      params
+      params,
     );
     return response.data.data;
-  }
+  },
 );
 
 /**
@@ -36,7 +36,7 @@ export const fetchUserByIdService = createApiThunk<any, string>(
   async (userId) => {
     const response = await axiosClientWithAuth.get(`/api/v1/users/${userId}`);
     return response.data.data;
-  }
+  },
 );
 
 /**
@@ -47,7 +47,7 @@ export const createUserService = createApiThunk<any, CreateUserRequest>(
   async (userData) => {
     const response = await axiosClientWithAuth.post("/api/v1/users", userData);
     return response.data.data;
-  }
+  },
 );
 
 /**
@@ -58,10 +58,10 @@ export const updateUserService = createApiThunk<any, UpdateUserParams>(
   async ({ userId, userData }) => {
     const response = await axiosClientWithAuth.put(
       `/api/v1/users/${userId}`,
-      userData
+      userData,
     );
     return response.data.data;
-  }
+  },
 );
 
 /**
@@ -71,10 +71,10 @@ export const deleteUserService = createApiThunk<any, string>(
   "users/delete",
   async (userId) => {
     const response = await axiosClientWithAuth.delete(
-      `/api/v1/users/${userId}`
+      `/api/v1/users/${userId}`,
     );
     return response.data.data;
-  }
+  },
 );
 
 /**
@@ -94,7 +94,7 @@ export const toggleUserStatusService = createApiThunk<any, UserResponseModel>(
       accountStatus: newStatus,
     });
     return response.data.data;
-  }
+  },
 );
 
 /**
@@ -106,7 +106,7 @@ export const adminChangePasswordService = createApiThunk<
 >("users/adminChangePassword", async (resetParam) => {
   const response = await axiosClientWithAuth.post(
     `/api/v1/users/admin/reset-password`,
-    resetParam
+    resetParam,
   );
   return response.data.data;
 });

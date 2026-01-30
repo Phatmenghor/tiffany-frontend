@@ -17,15 +17,10 @@ export const ROUTES = {
     ROOT: "/admin",
     DASHBOARD: "/admin",
     PROFILE: "/admin/profile",
-    SESSIONS: "/admin/sessions",
-    ADMIN_SESSIONS: "/admin/admin-sessions",
     USERS: "/admin/users",
-    ROLES: "/admin/users/roles",
-    BRAND: "/admin/brand",
+    CUSTOMER: "/admin/customers",
     BANNER: "/admin/banner",
     CATEGORIES: "/admin/categories",
-    EXCHANGE_RATE: "/admin/exchange-rate",
-    DELIVERY_OPTIONS: "/admin/delivery-options",
     PRODUCTS: "/admin/products",
     PRODUCTS_PROMOTION: "/admin/product-promotions",
   },
@@ -69,35 +64,8 @@ export const SIDEBAR_MENU: MenuItem[] = [
         href: ROUTES.ADMIN.USERS,
       },
       {
-        title: "Roles",
-        href: ROUTES.ADMIN.ROLES,
-      },
-    ],
-  },
-
-  {
-    title: "HR",
-    icon: Database,
-    items: [
-      {
-        title: "Work Schedule Types",
-        href: ROUTES.HR.WORK_SCHEDULE_TYPE,
-      },
-      {
-        title: "Leave Type",
-        href: ROUTES.HR.LEAVE_TYPE,
-      },
-      {
-        title: "Work Schedules",
-        href: ROUTES.HR.WORK_SCHEDULE,
-      },
-      {
-        title: "Leave",
-        href: ROUTES.HR.LEAVE,
-      },
-      {
-        title: "Attendance",
-        href: ROUTES.HR.ATTENDANCE,
+        title: "Customer",
+        href: ROUTES.ADMIN.CUSTOMER,
       },
     ],
   },
@@ -113,18 +81,6 @@ export const SIDEBAR_MENU: MenuItem[] = [
       {
         title: "Categories",
         href: ROUTES.ADMIN.CATEGORIES,
-      },
-      {
-        title: "Brand",
-        href: ROUTES.ADMIN.BRAND,
-      },
-      {
-        title: "Exchange Rate",
-        href: ROUTES.ADMIN.EXCHANGE_RATE,
-      },
-      {
-        title: "Delivery Options",
-        href: ROUTES.ADMIN.DELIVERY_OPTIONS,
       },
     ],
   },
@@ -143,10 +99,6 @@ export const SIDEBAR_MENU: MenuItem[] = [
     ],
   },
 ];
-
-/**
- * Route Helpers
- */
 
 export const isPublicRoute = (pathname: string): boolean => {
   return pathname === ROUTES.HOME || pathname === ROUTES.AUTH.LOGIN;
@@ -200,18 +152,6 @@ export const getBreadcrumbs = (pathname: string): Breadcrumb[] => {
   return breadcrumbs;
 };
 
-/**
- * Navigation Helpers
- */
-
-export const getDefaultAdminRoute = (): string => {
-  return "PLATFORM_USERS";
-};
-
 export const getLoginRedirectUrl = (): string => {
   return ROUTES.AUTH.LOGIN;
-};
-
-export const getDashboardRedirectUrl = (): string => {
-  return getDefaultAdminRoute();
 };

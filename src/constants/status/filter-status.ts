@@ -9,21 +9,12 @@ import {
   UserRole,
 } from "./status";
 
-export const USER_PLATFORM_ROLE_FILTER = [
+export const USER_ROLE_FILTER = [
   { value: UserRole.ALL, label: "All Roles" },
 
-  { value: UserRole.PLATFORM_OWNER, label: "Platform Owner" },
-  { value: UserRole.PLATFORM_ADMIN, label: "Platform Admin" },
-  { value: UserRole.PLATFORM_MANAGER, label: "Platform Manager" },
-  { value: UserRole.PLATFORM_SUPPORT, label: "Platform Support" },
-];
-
-export const USER_BUSINESS_ROLE_FILTER = [
-  { value: UserRole.ALL, label: "All Roles" },
-
-  { value: UserRole.BUSINESS_OWNER, label: "Platform Owner" },
-  { value: UserRole.BUSINESS_MANAGER, label: "Platform Admin" },
-  { value: UserRole.BUSINESS_STAFF, label: "Platform Manager" },
+  { value: UserRole.DEVELOPER, label: "Developer" },
+  { value: UserRole.ADMIN, label: "Admin" },
+  { value: UserRole.STAFF, label: "Staff" },
 ];
 
 export const BUSINESS_FILTER = [

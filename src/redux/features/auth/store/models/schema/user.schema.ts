@@ -16,26 +16,16 @@ export const createUserSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   phoneNumber: z.string().optional().or(z.literal("")),
-  profileImageUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
   role: z.string().min(1, "Role is required"),
   accountStatus: z.string().min(1, "Account status is required"),
 });
 
 export const updateUserSchema = z.object({
   id: z.string().min(1, "User ID is required"),
-  userIdentifier: z
-    .string()
-    .min(1, "User identifier is required")
-    .min(3, "User identifier must be at least 3 characters"),
   email: z.string().min(1, "Email is required").email("Invalid email format"),
-  password: z
-    .string()
-    .min(1, "Password is required")
-    .min(8, "Password must be at least 8 characters"),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   phoneNumber: z.string().optional().or(z.literal("")),
-  profileImageUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
   role: z.string().min(1, "Role is required"),
   accountStatus: z.string().min(1, "Account status is required"),
 });
@@ -63,7 +53,6 @@ export type UserFormData = {
   firstName: string;
   lastName: string;
   phoneNumber: string;
-  profileImageUrl?: string;
-  roles: string;
+  role: string;
   accountStatus: string;
 };

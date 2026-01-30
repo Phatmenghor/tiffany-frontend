@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
 import { dateTimeFormat } from "@/utils/date/date-time-format";
 import { DetailModal } from "@/components/shared/modal/detail-modal";
 import {
@@ -23,7 +22,7 @@ interface UserDetailModalProps {
   onClose: () => void;
 }
 
-export function UserBusinessDetailModal({
+export function UsersDetailModal({
   userId,
   isOpen,
   onClose,
@@ -56,60 +55,29 @@ export function UserBusinessDetailModal({
       isOpen={isOpen}
       onClose={handleClose}
       isLoading={isFetchingDetail}
-      title={"User Business Details"}
+      title={"User Details"}
       description={userData?.userIdentifier || "Loading user information..."}
       avatarUrl={userData?.profileImageUrl}
       avatarName={userData?.fullName}
     >
       {userData ? (
         <div className="space-y-6">
-          {/* Personal Information */}
           <DetailSection title="Personal Information">
+            <DetailRow
+              label="User Identifier"
+              value={userData?.userIdentifier || "---"}
+            />
+            <DetailRow label="User Role" value={userData?.role || "---"} />
             <DetailRow label="Full Name" value={userData?.fullName || "---"} />
             <DetailRow label="Email" value={userData?.email || "---"} />
             <DetailRow
               label="Phone Number"
               value={userData?.phoneNumber || "---"}
             />
-            <DetailRow label="Position" value={userData?.position || "---"} />
-            <DetailRow label="Address" value={userData?.address || "---"} />
-            <DetailRow
-              label="User Identifier"
-              value={userData?.userIdentifier || "---"}
-            />
-            <DetailRow
-              label="User Type"
-              value={formatEnumToDisplay(userData?.userType)}
-            />
             <DetailRow
               label="Account Status"
               value={formatEnumToDisplay(userData?.accountStatus)}
             />
-            <DetailRow
-              label="Business"
-              value={userData?.businessName || "---"}
-            />
-
-            {/* Roles */}
-            {userData?.roles && userData?.roles.length > 0 && (
-              <DetailRow
-                label="Roles"
-                value={
-                  <div className="flex flex-wrap gap-2 justify-end">
-                    {userData.roles.map((role, index) => (
-                      <Badge key={index} variant="secondary">
-                        {formatEnumToDisplay(role)}
-                      </Badge>
-                    ))}
-                  </div>
-                }
-              />
-            )}
-
-            {/* Notes */}
-            {userData?.notes && (
-              <DetailRow label="Notes" value={userData.notes} isLast />
-            )}
           </DetailSection>
 
           {/* System Information */}
