@@ -3,21 +3,10 @@
 import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import {
-  Edit,
-  Loader2,
-  Trash2,
-  Lock,
-  User,
-  Monitor,
-  Link2,
-} from "lucide-react";
+import { Edit, Loader2, Trash2, Lock, User, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { TextField } from "@/components/shared/form-field/text-field";
-import { TextareaField } from "@/components/shared/form-field/text-area-field";
 import { ImageUploadField } from "@/components/shared/form-field/image-upload-field";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
