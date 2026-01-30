@@ -45,6 +45,16 @@ export const changePasswordSchema = z
     path: ["confirmPassword"],
   });
 
+export const profileSchema = z.object({
+  profileImageUrl: z.string().optional(),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  phoneNumber: z.string().optional(),
+  email: z.string().optional(),
+});
+
+export type ProfileFormData = z.infer<typeof profileSchema>;
+
 export type UserFormData = {
   id: string;
   userIdentifier?: string;

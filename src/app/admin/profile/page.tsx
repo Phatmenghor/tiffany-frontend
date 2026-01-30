@@ -40,21 +40,11 @@ import { clearToken } from "@/utils/local-storage/token";
 import { CustomAvatar } from "@/components/shared/avator/custom-avator";
 import { isBase64Image, uploadImage } from "@/utils/common/upload-image";
 import { removeUserInfo } from "@/utils/local-storage/userInfo";
-import Link from "next/link";
 import { Loading } from "@/components/shared/common/loading";
-
-// Profile update schema
-const profileSchema = z.object({
-  profileImageUrl: z.string().optional(),
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  phoneNumber: z.string().min(1, "Phone number is required"),
-  position: z.string().optional(),
-  address: z.string().optional(),
-  notes: z.string().optional(),
-});
-
-type ProfileFormData = z.infer<typeof profileSchema>;
+import {
+  ProfileFormData,
+  profileSchema,
+} from "@/redux/features/auth/store/models/schema/user.schema";
 
 export default function UserProfilePage() {
   const dispatch = useAppDispatch();
@@ -82,9 +72,7 @@ export default function UserProfilePage() {
       firstName: "",
       lastName: "",
       phoneNumber: "",
-      position: "",
-      address: "",
-      notes: "",
+      email: "",
     },
     mode: "onChange",
   });
@@ -102,6 +90,7 @@ export default function UserProfilePage() {
         firstName: userProfile.firstName || "",
         lastName: userProfile.lastName || "",
         phoneNumber: userProfile.phoneNumber || "",
+        email: userProfile.email || "",
       });
     }
   }, [userProfile, reset]);
@@ -133,9 +122,7 @@ export default function UserProfilePage() {
         firstName: data.firstName,
         lastName: data.lastName,
         phoneNumber: data.phoneNumber,
-        position: data.position,
-        address: data.address,
-        notes: data.notes,
+        email: data.email,
       };
 
       await dispatch(updateProfileService(payload)).unwrap();
