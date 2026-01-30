@@ -40,7 +40,6 @@ import { clearToken } from "@/utils/local-storage/token";
 import { CustomAvatar } from "@/components/shared/avator/custom-avator";
 import { isBase64Image, uploadImage } from "@/utils/common/upload-image";
 import { removeUserInfo } from "@/utils/local-storage/userInfo";
-import { TelegramSyncCard } from "@/components/shared/telegram/telegram-sync-card";
 import Link from "next/link";
 import { Loading } from "@/components/shared/common/loading";
 
@@ -64,7 +63,6 @@ export default function UserProfilePage() {
   const userProfile = useAppSelector(selectProfile);
   const isProfileLoading = useAppSelector(selectIsProfileLoading);
   const reduxError = useAppSelector(selectError);
-  const socialSync = useAppSelector((state) => state.auth.socialSync);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
@@ -104,9 +102,6 @@ export default function UserProfilePage() {
         firstName: userProfile.firstName || "",
         lastName: userProfile.lastName || "",
         phoneNumber: userProfile.phoneNumber || "",
-        position: userProfile.position || "",
-        address: userProfile.address || "",
-        notes: userProfile.notes || "",
       });
     }
   }, [userProfile, reset]);
@@ -159,9 +154,6 @@ export default function UserProfilePage() {
         firstName: userProfile.firstName || "",
         lastName: userProfile.lastName || "",
         phoneNumber: userProfile.phoneNumber || "",
-        position: userProfile.position || "",
-        address: userProfile.address || "",
-        notes: userProfile.notes || "",
       });
     }
     setIsEditing(false);
@@ -213,11 +205,6 @@ export default function UserProfilePage() {
                     <p className="text-muted-foreground text-sm">
                       {userProfile?.email}
                     </p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge variant="secondary" className="text-xs">
-                        {userProfile?.userType}
-                      </Badge>
-                    </div>
                   </div>
 
                   <div className="flex gap-2">
@@ -355,34 +342,15 @@ export default function UserProfilePage() {
 
                     <TextField
                       control={control}
-                      name="position"
-                      label="Position"
-                      placeholder="e.g., Software Engineer"
+                      name="email"
+                      label="Email"
+                      type="email"
+                      placeholder="Enter email address"
                       disabled={!isEditing}
-                      error={errors.position}
+                      required
+                      error={errors.phoneNumber}
                     />
                   </div>
-
-                  {/* Address - Full Width */}
-                  <TextField
-                    control={control}
-                    name="address"
-                    label="Address"
-                    placeholder="Enter your address"
-                    disabled={!isEditing}
-                    error={errors.address}
-                  />
-
-                  {/* Notes - Full Width */}
-                  <TextareaField
-                    control={control}
-                    name="notes"
-                    label="Notes"
-                    placeholder="Additional notes or information"
-                    rows={4}
-                    disabled={!isEditing}
-                    error={errors.notes}
-                  />
                 </div>
               </form>
             </CardContent>
@@ -398,34 +366,7 @@ export default function UserProfilePage() {
                 <Link2 className="h-4 w-4" />
                 Connected Accounts
               </h3>
-              <TelegramSyncCard
-                socialSync={socialSync}
-                userType={userProfile?.userType || "CUSTOMER"}
-              />
             </div>
-
-            {/* Active Sessions */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-foreground">
-                      Active Sessions
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Manage your active sessions and sign out from other
-                      devices
-                    </p>
-                  </div>
-                  <Link href="/admin/sessions">
-                    <Button variant="outline">
-                      <Monitor className="h-4 w-4 mr-2" />
-                      View Sessions
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Change Password */}
             <Card>
