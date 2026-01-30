@@ -10,9 +10,6 @@ export interface BannerResponseModel {
   updatedAt: string;
   createdBy: string;
   updatedBy: string;
-  businessId: string;
-  description: string;
-  businessName: string;
   imageUrl: string;
   linkUrl: string;
   status: string;

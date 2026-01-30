@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Loading from "@/components/shared/common/loading";
 import { TextField } from "@/components/shared/form-field/text-field";
 import { SelectField } from "@/components/shared/form-field/select-field";
 import { CancelButton } from "@/components/shared/form-field/cancel-button";
@@ -18,10 +17,9 @@ import {
   selectError,
   selectIsFetchingDetail,
   selectOperations,
-  selectSelectedBanner,
 } from "../store/selectors/banner-selector";
 import {
-  CreateBannerData,
+  BannerFormData,
   createBannerSchema,
   updateBannerSchema,
 } from "../store/models/schema/banner-schema";
@@ -35,6 +33,11 @@ import { uploadImage, isBase64Image } from "@/utils/common/upload-image";
 import { showToast } from "@/components/shared/common/show-toast";
 import { BANNER_STATUS_CREATE_UPDATE } from "@/constants/status/create-update-status";
 import { ClickableImageUpload } from "@/components/shared/form-field/clickable-image-upload";
+import {
+  CreateBannerRequest,
+  UpdateBannerRequest,
+} from "../store/models/request/banner-request";
+import { Loading } from "@/components/shared/common/loading";
 
 type Props = {
   mode: ModalMode;
@@ -68,8 +71,10 @@ export default function BannerModal({
     setValue,
     watch,
     formState: { errors, isDirty },
-  } = useForm<CreateBannerData>({
-    resolver: zodResolver(isCreate ? createBannerSchema : updateBannerSchema),
+  } = useForm<BannerFormData>({
+    resolver: zodResolver(
+      isCreate ? createBannerSchema : updateBannerSchema,
+    ) as any,
     defaultValues: {
       imageUrl: "",
       linkUrl: "",
@@ -122,7 +127,7 @@ export default function BannerModal({
     }
   }, [isOpen, dispatch]);
 
-  const onSubmit = async (data: CreateBannerData) => {
+  const onSubmit = async (data: BannerFormData) => {
     try {
       let finalImageUrl = data.imageUrl;
 
@@ -140,26 +145,31 @@ export default function BannerModal({
         }
       }
 
-      const payload = {
-        imageUrl: finalImageUrl,
-        linkUrl: data.linkUrl || "",
-        status: data.status,
-      };
-
       if (isCreate) {
+        const payload: CreateBannerRequest = {
+          imageUrl: finalImageUrl,
+          linkUrl: data.linkUrl || "",
+          status: data.status,
+        };
+
         await dispatch(createBannerService(payload)).unwrap();
         showToast.success("Banner created successfully");
         handleClose();
       } else {
+        const payload: UpdateBannerRequest = {
+          imageUrl: finalImageUrl,
+          linkUrl: data.linkUrl || "",
+          status: data.status,
+        };
         await dispatch(
-          updateBannerService({ id: bannerId!, payload })
+          updateBannerService({ id: bannerId!, payload }),
         ).unwrap();
         showToast.success("Banner updated successfully");
         handleClose();
       }
     } catch (error: any) {
       showToast.error(
-        error?.message || `Failed to ${isCreate ? "create" : "update"} banner`
+        error?.message || `Failed to ${isCreate ? "create" : "update"} banner`,
       );
     }
   };
@@ -188,7 +198,6 @@ export default function BannerModal({
           isCreate={isCreate}
         />
 
-        {/* Show loading spinner in edit mode while fetching or when form is empty */}
         {!isCreate && (isFetchingDetail || !imageUrl) ? (
           <div className="p-6 flex items-center justify-center min-h-[400px] flex-1">
             <Loading />
@@ -209,7 +218,6 @@ export default function BannerModal({
               )}
 
               <div className="space-y-6">
-                {/* Banner Image Section - Prominent display */}
                 <div className="space-y-3">
                   <ClickableImageUpload
                     label="Banner Image"

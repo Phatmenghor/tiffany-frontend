@@ -1,12 +1,22 @@
 import { BaseGetAllRequest } from "@/utils/common/get-all-request";
-import { UpdateBannerData } from "../schema/banner-schema";
 
 export interface AllBannerRequest extends BaseGetAllRequest {
   status?: string;
-  businessId?: string;
 }
 
 export interface UpdateBannerParams {
   id: string;
-  payload: UpdateBannerData;
+  payload: UpdateBannerRequest;
+}
+
+export interface UpdateBannerRequest {
+  imageUrl: string;
+  linkUrl?: string;
+  status: string;
+}
+
+export interface CreateBannerRequest {
+  imageUrl: string;
+  linkUrl?: string;
+  status: string;
 }

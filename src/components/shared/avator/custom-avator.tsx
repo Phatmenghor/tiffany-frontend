@@ -186,7 +186,7 @@ export const CustomAvatar: React.FC<CustomerAvatarProps> = ({
         <div
           className={`${
             bannerSizes[bannerHeight]
-          } w-full max-w-xs rounded-lg overflow-hidden border-2 border-border bg-muted ${
+          } w-full max-w-56 rounded-lg overflow-hidden border-2 border-border bg-muted ${
             imageUrl && enableImagePreview
               ? "cursor-pointer hover:border-primary/50"
               : ""

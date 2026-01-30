@@ -49,7 +49,7 @@ export const bannerTableColumns = ({
           <CustomAvatar
             variant="banner"
             imageUrl={banner.imageUrl}
-            name={banner?.businessName}
+            name={"Banner Image"}
             bannerHeight="lg"
           />
         );

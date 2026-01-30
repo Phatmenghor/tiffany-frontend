@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
 import { dateTimeFormat } from "@/utils/date/date-time-format";
 import { DetailModal } from "@/components/shared/modal/detail-modal";
 import {
@@ -9,7 +8,6 @@ import {
   DetailSection,
 } from "@/components/shared/modal/detail-section";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
-import { formatEnumToDisplay } from "@/utils/styles/enum-style";
 import {
   selectIsFetchingDetail,
   selectSelectedBanner,
@@ -58,7 +56,7 @@ export function BannerDetailModal({
       onClose={handleClose}
       isLoading={isFetchingDetail}
       title={"Banner information Details"}
-      description={bannerData?.businessName || "Loading banner information..."}
+      description={"Banner information"}
     >
       {bannerData ? (
         <div className="space-y-6">
@@ -67,14 +65,10 @@ export function BannerDetailModal({
             <CustomAvatar
               variant="banner"
               imageUrl={bannerData.imageUrl}
-              name={bannerData?.businessName}
+              name={"Banner Image"}
               bannerHeight="xl"
             />
             <DetailRow label="Link URL" value={bannerData?.linkUrl || "---"} />
-            <DetailRow
-              label="Business Name"
-              value={bannerData?.businessName || "---"}
-            />
             <DetailRow
               label="Status"
               value={bannerData?.status || "---"}
@@ -113,7 +107,7 @@ export function BannerDetailModal({
         </div>
       ) : (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">No user data available</p>
+          <p className="text-muted-foreground">No banner data available</p>
         </div>
       )}
     </DetailModal>

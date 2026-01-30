@@ -35,7 +35,6 @@ import { selectGlobalPageSize } from "@/redux/store/selectors/global-settings-se
 import { useAppSelector } from "@/redux/store";
 
 export default function BannerPage() {
-  // Clean up state when leaving admin area (performance optimization)
   useAdminCleanup(resetState);
   const searchParams = useSearchParams();
 
@@ -68,7 +67,6 @@ export default function BannerPage() {
     banner: null as BannerResponseModel | null,
   });
 
-  // Global page size from global settings (synced across all admin pages)
   const globalPageSize = useAppSelector(selectGlobalPageSize);
 
   const debouncedSearch = useDebounce(filters.search, 400);
@@ -177,13 +175,10 @@ export default function BannerPage() {
     try {
       await dispatch(deleteBannerService(deleteState.banner.id)).unwrap();
 
-      showToast.success(
-        `Banner "${deleteState.banner.businessName ?? ""}" deleted successfully`,
-      );
+      showToast.success(`Banner deleted successfully`);
 
       closeDeleteModal();
 
-      // Navigate to previous page if this was the last item
       if (bannerContent.length === 1 && pagination.currentPage > 1) {
         const newPage = pagination.currentPage - 1;
         dispatch(setPageNo(newPage));
@@ -282,10 +277,8 @@ export default function BannerPage() {
         onClose={closeDeleteModal}
         onDelete={handleDelete}
         title="Delete Banner"
-        description={`Are you sure you want to delete this banner ${
-          deleteState.banner?.businessName || ""
-        }?`}
-        itemName={deleteState.banner?.businessName || ""}
+        description={`Are you sure you want to delete this banner?`}
+        itemName={"This action cannot be undone."}
         isSubmitting={operations.isDeleting}
       />
     </div>

@@ -18,5 +18,9 @@ export const updateBannerSchema = z.object({
   status: z.string().min(1, "Status is required"),
 });
 
-export type CreateBannerData = z.infer<typeof createBannerSchema>;
-export type UpdateBannerData = z.infer<typeof updateBannerSchema>;
+export type BannerFormData = {
+  id?: string;
+  imageUrl: string;
+  linkUrl?: string;
+  status: string;
+};
