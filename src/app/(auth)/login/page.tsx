@@ -20,54 +20,16 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { useAuthState } from "@/redux/features/auth/store/state/auth-state";
 import { loginService } from "@/redux/features/auth/store/thunks/auth-thunks";
-import { telegramAuthenticateService } from "@/redux/features/auth/store/thunks/social-auth-thunks";
 import { ROUTES } from "@/constants/app-routes/routes";
 import { showToast } from "@/components/shared/common/show-toast";
 import { appImages } from "@/constants/app-resource/icons/app-images";
-import {
-  AppDefault,
-  SocialAuthConfig,
-} from "@/constants/app-resource/default/default";
-import { TelegramLoginButton } from "@/components/shared/telegram/telegram-login-widget";
-import { TelegramAuthData } from "@/redux/features/auth/store/models/request/social-auth-request";
-import { useAppSelector } from "@/redux/store";
+import { AppDefault } from "@/constants/app-resource/default/default";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [isTelegramLoading, setIsTelegramLoading] = useState(false);
   const router = useRouter();
 
   const { isLoading, error, dispatch } = useAuthState();
-  const isNewUser = useAppSelector((state) => state.auth.isNewUser);
-
-  // Handle Telegram authentication
-  const handleTelegramAuth = async (telegramData: TelegramAuthData) => {
-    setIsTelegramLoading(true);
-    try {
-      const result = await dispatch(
-        telegramAuthenticateService({
-          telegramData,
-          userType: "CUSTOMER",
-          businessId: AppDefault.BUSINESS_ID,
-        }),
-      ).unwrap();
-
-      if (result) {
-        if (result.isNewUser) {
-          showToast.success(
-            "Welcome! Your account has been created successfully.",
-          );
-        } else {
-          showToast.success("Welcome back!");
-        }
-        router.replace(ROUTES.ADMIN.DASHBOARD);
-      }
-    } catch (err: any) {
-      showToast.error(err || "Telegram login failed. Please try again.");
-    } finally {
-      setIsTelegramLoading(false);
-    }
-  };
 
   // Create form schema
   const formSchema = z.object({
@@ -75,8 +37,6 @@ export default function LoginPage() {
     password: z.string().min(6, {
       message: "Password must be at least 6 characters",
     }),
-    userType: z.string().min(1, "User type is required"),
-    businessId: z.string().optional(),
   });
 
   type FormData = z.infer<typeof formSchema>;
@@ -84,10 +44,8 @@ export default function LoginPage() {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      userIdentifier: "phatmenghor20@gmail.com",
+      userIdentifier: "phatmenghor19@gmail.com",
       password: "88889999",
-      userType: "BUSINESS_USER",
-      businessId: AppDefault.BUSINESS_ID,
     },
   });
 
@@ -97,13 +55,11 @@ export default function LoginPage() {
         loginService({
           userIdentifier: values.userIdentifier || "",
           password: values.password,
-          userType: values.userType,
-          businessId: values.businessId,
         }),
       ).unwrap();
 
       if (result) {
-        showToast.success("Welcome to the emenu dashboard!");
+        showToast.success("Welcome to the tiffany furniture dashboard!");
         router.replace(ROUTES.ADMIN.DASHBOARD);
       }
     } catch (err: any) {
@@ -222,7 +178,7 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   className="w-full h-11 bg-primary hover:bg-primary/90 transition-all duration-300 shadow-md hover:shadow-lg font-semibold mt-6"
-                  disabled={isLoading || isTelegramLoading}
+                  disabled={isLoading}
                 >
                   {isLoading && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -231,28 +187,6 @@ export default function LoginPage() {
                 </Button>
               </form>
             </Form>
-
-            {/* Divider */}
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-500">
-                  Or continue with
-                </span>
-              </div>
-            </div>
-
-            {/* Telegram Login Button */}
-            <TelegramLoginButton
-              botName={SocialAuthConfig.TELEGRAM_BOT_NAME}
-              botId={SocialAuthConfig.TELEGRAM_BOT_ID}
-              onAuth={handleTelegramAuth}
-              disabled={isLoading}
-              loading={isTelegramLoading}
-              className="w-full h-11"
-            />
 
             {/* Footer Links */}
             <div className="text-center mt-6">

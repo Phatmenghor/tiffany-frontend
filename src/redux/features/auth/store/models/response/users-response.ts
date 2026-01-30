@@ -15,16 +15,10 @@ export interface UserResponseModel {
   firstName: string;
   lastName: string;
   fullName: string;
-  phoneNumber: string;
+  phoneNumber: any;
   profileImageUrl: string;
-  userType: string;
   accountStatus: string;
-  roles: string[];
-  position: string;
-  address: string;
-  notes: string;
-  businessId: string;
-  businessName: string;
+  role: string;
 }
 
 export interface UserInfoModel {

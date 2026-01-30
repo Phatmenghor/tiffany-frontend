@@ -1,9 +1,4 @@
-﻿/**
- * Auth Feature - Redux Slice
- * Manages auth state: user, profile, loading, errors
- */
-
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+﻿import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { UserAuthResponseModel } from "../models/response/auth-resposne";
 import {
   loginService,
@@ -12,96 +7,41 @@ import {
   changePasswordService,
   deleteAccountService,
 } from "../thunks/auth-thunks";
-import {
-  telegramAuthenticateService,
-  socialAuthenticateService,
-  syncTelegramAccountService,
-  unsyncSocialAccountService,
-  logoutService,
-} from "../thunks/social-auth-thunks";
 import { AuthState } from "../models/type/auth-types";
 import { storeTokens, clearAllTokens } from "@/utils/local-storage/token";
 import { storeUserInfo, removeUserInfo } from "@/utils/local-storage/userInfo";
-import { SocialSyncResponse } from "../models/response/social-auth-response";
 
-/**
- * Extended auth state with social sync info
- */
-interface ExtendedAuthState extends AuthState {
-  socialSync: SocialSyncResponse | null;
-  isSocialLoading: boolean;
-  isNewUser: boolean;
-}
-
-/**
- * Initial auth state
- */
-const initialState: ExtendedAuthState = {
+const initialState: AuthState = {
   isAuthenticated: false,
   user: null,
   profile: null,
   isLoading: false,
   isProfileLoading: false,
   error: null,
-  socialSync: null,
-  isSocialLoading: false,
-  isNewUser: false,
 };
 
-/**
- * Auth slice
- */
 const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    /**
-     * Set user directly (useful after checking local storage)
-     */
     setUser: (state, action: PayloadAction<UserAuthResponseModel>) => {
       state.user = action.payload;
       state.isAuthenticated = !!action.payload.accessToken;
     },
 
-    /**
-     * Clear authentication state
-     */
     logout: (state) => {
       state.isAuthenticated = false;
       state.user = null;
       state.profile = null;
       state.error = null;
-      state.socialSync = null;
-      state.isNewUser = false;
-      // Clear stored tokens
       clearAllTokens();
       removeUserInfo();
     },
 
-    /**
-     * Clear any errors
-     */
     clearError: (state) => {
       state.error = null;
     },
 
-    /**
-     * Set social sync info
-     */
-    setSocialSync: (state, action: PayloadAction<SocialSyncResponse | null>) => {
-      state.socialSync = action.payload;
-    },
-
-    /**
-     * Clear new user flag
-     */
-    clearNewUserFlag: (state) => {
-      state.isNewUser = false;
-    },
-
-    /**
-     * Reset auth state
-     */
     resetAuthState: () => initialState,
   },
 
@@ -117,7 +57,6 @@ const authSlice = createSlice({
         state.user = action.payload;
         state.isAuthenticated = !!action.payload.accessToken;
 
-        // Store authentication data (access + refresh tokens)
         if (action.payload.accessToken) {
           storeTokens(action.payload.accessToken, action.payload.refreshToken);
         }
@@ -198,148 +137,9 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       });
-
-    // Telegram authenticate thunk handlers
-    builder
-      .addCase(telegramAuthenticateService.pending, (state) => {
-        state.isSocialLoading = true;
-        state.error = null;
-      })
-      .addCase(telegramAuthenticateService.fulfilled, (state, action) => {
-        state.isSocialLoading = false;
-        state.isAuthenticated = true;
-        state.isNewUser = action.payload.isNewUser;
-
-        // Create user object from social auth response
-        const socialResponse = action.payload;
-        state.user = {
-          accessToken: socialResponse.accessToken,
-          refreshToken: socialResponse.refreshToken,
-          tokenType: "Bearer",
-          userId: socialResponse.userId,
-          userIdentifier: socialResponse.userIdentifier,
-          email: socialResponse.userIdentifier,
-          fullName: socialResponse.socialUsername || socialResponse.userIdentifier,
-          profileImageUrl: null,
-          userType: socialResponse.userType,
-          roles: [socialResponse.userType],
-          businessId: "",
-          businessName: "",
-          businessStatus: "",
-          isSubscriptionActive: "",
-        };
-
-        // Store tokens
-        storeTokens(socialResponse.accessToken, socialResponse.refreshToken);
-        storeUserInfo(state.user);
-      })
-      .addCase(telegramAuthenticateService.rejected, (state, action) => {
-        state.isSocialLoading = false;
-        state.error = action.payload as string;
-      });
-
-    // Social authenticate thunk handlers (generic)
-    builder
-      .addCase(socialAuthenticateService.pending, (state) => {
-        state.isSocialLoading = true;
-        state.error = null;
-      })
-      .addCase(socialAuthenticateService.fulfilled, (state, action) => {
-        state.isSocialLoading = false;
-        state.isAuthenticated = true;
-        state.isNewUser = action.payload.isNewUser;
-
-        const socialResponse = action.payload;
-        state.user = {
-          accessToken: socialResponse.accessToken,
-          refreshToken: socialResponse.refreshToken,
-          tokenType: "Bearer",
-          userId: socialResponse.userId,
-          userIdentifier: socialResponse.userIdentifier,
-          email: socialResponse.userIdentifier,
-          fullName: socialResponse.socialUsername || socialResponse.userIdentifier,
-          profileImageUrl: null,
-          userType: socialResponse.userType,
-          roles: [socialResponse.userType],
-          businessId: "",
-          businessName: "",
-          businessStatus: "",
-          isSubscriptionActive: "",
-        };
-
-        storeTokens(socialResponse.accessToken, socialResponse.refreshToken);
-        storeUserInfo(state.user);
-      })
-      .addCase(socialAuthenticateService.rejected, (state, action) => {
-        state.isSocialLoading = false;
-        state.error = action.payload as string;
-      });
-
-    // Sync Telegram account thunk handlers
-    builder
-      .addCase(syncTelegramAccountService.pending, (state) => {
-        state.isSocialLoading = true;
-        state.error = null;
-      })
-      .addCase(syncTelegramAccountService.fulfilled, (state, action) => {
-        state.isSocialLoading = false;
-        state.socialSync = action.payload;
-      })
-      .addCase(syncTelegramAccountService.rejected, (state, action) => {
-        state.isSocialLoading = false;
-        state.error = action.payload as string;
-      });
-
-    // Unsync social account thunk handlers
-    builder
-      .addCase(unsyncSocialAccountService.pending, (state) => {
-        state.isSocialLoading = true;
-        state.error = null;
-      })
-      .addCase(unsyncSocialAccountService.fulfilled, (state, action) => {
-        state.isSocialLoading = false;
-        state.socialSync = action.payload;
-      })
-      .addCase(unsyncSocialAccountService.rejected, (state, action) => {
-        state.isSocialLoading = false;
-        state.error = action.payload as string;
-      });
-
-    // Logout service thunk handlers
-    builder
-      .addCase(logoutService.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(logoutService.fulfilled, (state) => {
-        state.isLoading = false;
-        state.isAuthenticated = false;
-        state.user = null;
-        state.profile = null;
-        state.socialSync = null;
-        state.isNewUser = false;
-        clearAllTokens();
-        removeUserInfo();
-      })
-      .addCase(logoutService.rejected, (state) => {
-        // Even if server logout fails, clear local state
-        state.isLoading = false;
-        state.isAuthenticated = false;
-        state.user = null;
-        state.profile = null;
-        state.socialSync = null;
-        state.isNewUser = false;
-        clearAllTokens();
-        removeUserInfo();
-      });
   },
 });
 
-export const {
-  setUser,
-  logout,
-  clearError,
-  setSocialSync,
-  clearNewUserFlag,
-  resetAuthState,
-} = authSlice.actions;
+export const { setUser, logout, clearError, resetAuthState } =
+  authSlice.actions;
 export default authSlice.reducer;
