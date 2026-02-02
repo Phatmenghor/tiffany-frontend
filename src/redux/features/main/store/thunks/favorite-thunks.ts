@@ -9,7 +9,7 @@ export const fetchFavoriteList = createApiThunk<AllFavoriteResponseModel, void>(
   async () => {
     const response = await axiosClientWithAuth.post(
       "/api/v1/product-favorites/my-favorites",
-      { pageNo: 1, pageSize: 200 },
+      { pageNo: 1, pageSize: 20 },
     );
     return response.data.data;
   },
