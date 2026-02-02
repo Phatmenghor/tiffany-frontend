@@ -29,6 +29,7 @@ export function DashboardSidebar({ isOpen, onToggle }: SidebarProps) {
     "Master Data": true,
     Users: true,
     Business: true,
+    Setting: true,
   });
   const [collapsed, setCollapsed] = useState(false);
 
