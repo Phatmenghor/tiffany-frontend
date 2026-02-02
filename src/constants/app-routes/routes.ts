@@ -25,15 +25,7 @@ export const ROUTES = {
     SUB_CATEGORIES: "/admin/sub-categories",
     PRODUCTS: "/admin/products",
     PRODUCTS_PROMOTION: "/admin/product-promotions",
-    ABOUT_US: "/admin/abou-us",
-  },
-
-  HR: {
-    WORK_SCHEDULE: "/admin/hr/work-schedule",
-    WORK_SCHEDULE_TYPE: "/admin/hr/work-schedule-type",
-    LEAVE_TYPE: "/admin/hr/leave-type",
-    LEAVE: "/admin/hr/leave",
-    ATTENDANCE: "/admin/hr/attendance",
+    ABOUT_US: "/admin/about-us",
   },
 } as const;
 
