@@ -4,6 +4,7 @@ import {
   Database,
   LucideIcon,
   LucideBriefcaseBusiness,
+  Settings,
 } from "lucide-react";
 
 export const ROUTES = {
@@ -24,7 +25,7 @@ export const ROUTES = {
     SUB_CATEGORIES: "/admin/sub-categories",
     PRODUCTS: "/admin/products",
     PRODUCTS_PROMOTION: "/admin/product-promotions",
-    BANNER: "/admin/about-us",
+    ABOUT_US: "/admin/abou-us",
   },
 
   HR: {
@@ -97,6 +98,16 @@ export const SIDEBAR_MENU: MenuItem[] = [
       {
         title: "Products Promotion",
         href: ROUTES.ADMIN.PRODUCTS_PROMOTION,
+      },
+    ],
+  },
+  {
+    title: "Setting",
+    icon: Settings,
+    items: [
+      {
+        title: "About Us",
+        href: ROUTES.ADMIN.ABOUT_US,
       },
     ],
   },
