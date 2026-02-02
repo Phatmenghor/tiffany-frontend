@@ -2,7 +2,7 @@ import { axiosClientWithAuth } from "@/utils/axios";
 import { createApiThunk } from "@/utils/axios/api-wrapper";
 import {
   AllBannerRequest,
-  CreateBannerData,
+  CreateBannerRequest,
   UpdateBannerParams,
 } from "../models/request/banner-request";
 
@@ -36,7 +36,7 @@ export const fetchBannerByIdService = createApiThunk<any, string>(
 /**
  * Create banner
  */
-export const createBannerService = createApiThunk<any, CreateBannerData>(
+export const createBannerService = createApiThunk<any, CreateBannerRequest>(
   "banners/create",
   async (bannerData) => {
     const response = await axiosClientWithAuth.post(

@@ -21,6 +21,6 @@ export const updateCategoriesSchema = z.object({
 export type CategoriesFormData = {
   id?: string;
   name: string;
-  imageUrl: string;
+  imageUrl?: string;
   status: string;
 };

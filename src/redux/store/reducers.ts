@@ -20,6 +20,8 @@ import cartReducer from "../features/main/store/slice/cart-slice";
 import wishlistReducer from "../features/main/store/slice/wishlist-slice";
 import globalSettingsReducer from "./slices/global-settings-slice";
 
+import aboutUsReducer from "../features/setting/store/slice/about-us-slice";
+
 /**
  * Root reducer configuration
  * Add new feature reducers here
@@ -39,6 +41,9 @@ export const reducers = {
 
   // Business
   products: productReducer,
+
+  // Setting
+  aboutUs: aboutUsReducer,
 
   // Main/Public
   home: homeReducer,

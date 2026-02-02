@@ -24,6 +24,7 @@ export const ROUTES = {
     SUB_CATEGORIES: "/admin/sub-categories",
     PRODUCTS: "/admin/products",
     PRODUCTS_PROMOTION: "/admin/product-promotions",
+    BANNER: "/admin/about-us",
   },
 
   HR: {
