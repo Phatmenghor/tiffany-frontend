@@ -1,6 +1,4 @@
 import { BaseGetAllRequest } from "@/utils/common/get-all-request";
-import { UpdateBannerData } from "../schema/banner-schema";
-import { UpdateCategoriesData } from "../schema/categories-schema";
 
 export interface AllCategoriesRequest extends BaseGetAllRequest {
   status?: string;
@@ -10,3 +8,15 @@ export interface UpdateCategoriesParams {
   categoriesId: string;
   categoriesData: UpdateCategoriesData;
 }
+
+export type CreateCategoriesData = {
+  name: string;
+  imageUrl: string;
+  status: string;
+};
+
+export type UpdateCategoriesData = {
+  name: string;
+  imageUrl: string;
+  status: string;
+};

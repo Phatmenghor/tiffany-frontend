@@ -1,20 +1,20 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Status } from "@/constants/status/status";
-import { CategoriesManagementState } from "../models/type/categories-type";
+import { SubCategoriesManagementState } from "../models/type/sub-categories-type";
 import {
-  createCategoriesService,
-  deleteCategoriesService,
-  fetchAllCategoriesService,
-  fetchCategoriesByIdService,
-  updateCategoriesService,
-} from "../thunks/categories-thunks";
+  createSubCategoriesService,
+  deleteSubCategoriesService,
+  fetchAllSubCategoriesService,
+  fetchSubCategoriesByIdService,
+  updateSubCategoriesService,
+} from "../thunks/sub-categories-thunks";
 
 /**
  * Initial state
  */
-const initialState: CategoriesManagementState = {
+const initialState: SubCategoriesManagementState = {
   data: null,
-  selectedCategories: null,
+  selectedSubCategories: null,
   isLoading: true,
   error: null,
   filters: {
@@ -31,10 +31,10 @@ const initialState: CategoriesManagementState = {
 };
 
 /**
- * Categories slice
+ * Sub Categories slice
  */
-const categoriesSlice = createSlice({
-  name: "categories",
+const subCategoriesSlice = createSlice({
+  name: "sub-categories",
   initialState,
   reducers: {
     setSearchFilter: (state, action: PayloadAction<string>) => {
@@ -55,8 +55,8 @@ const categoriesSlice = createSlice({
       state.filters.pageNo = 1;
     },
 
-    clearSelectedCategories: (state) => {
-      state.selectedCategories = null;
+    clearSelectedSubCategories: (state) => {
+      state.selectedSubCategories = null;
     },
 
     resetFilters: (state) => {
@@ -70,30 +70,29 @@ const categoriesSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
-      .addCase(fetchAllCategoriesService.pending, (state) => {
+      .addCase(fetchAllSubCategoriesService.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchAllCategoriesService.fulfilled, (state, action) => {
+      .addCase(fetchAllSubCategoriesService.fulfilled, (state, action) => {
         state.data = action.payload;
         state.isLoading = false;
       })
-      .addCase(fetchAllCategoriesService.rejected, (state, action) => {
+      .addCase(fetchAllSubCategoriesService.rejected, (state, action) => {
         state.error = action.payload as string;
         state.isLoading = false;
       });
 
     builder
-      .addCase(fetchCategoriesByIdService.pending, (state) => {
+      .addCase(fetchSubCategoriesByIdService.pending, (state) => {
         state.operations.isFetchingDetail = true;
         state.error = null;
-        state.selectedCategories = null;
+        state.selectedSubCategories = null;
       })
-      .addCase(fetchCategoriesByIdService.fulfilled, (state, action) => {
-        state.selectedCategories = action.payload;
+      .addCase(fetchSubCategoriesByIdService.fulfilled, (state, action) => {
+        state.selectedSubCategories = action.payload;
         state.operations.isFetchingDetail = false;
 
-        // Also update in list if exists (for consistency)
         if (state.data?.content) {
           const index = state.data.content.findIndex(
             (user) => user.id === action.payload.id,
@@ -103,17 +102,17 @@ const categoriesSlice = createSlice({
           }
         }
       })
-      .addCase(fetchCategoriesByIdService.rejected, (state, action) => {
+      .addCase(fetchSubCategoriesByIdService.rejected, (state, action) => {
         state.error = action.payload as string;
         state.operations.isFetchingDetail = false;
       });
 
     builder
-      .addCase(createCategoriesService.pending, (state) => {
+      .addCase(createSubCategoriesService.pending, (state) => {
         state.operations.isCreating = true;
         state.error = null;
       })
-      .addCase(createCategoriesService.fulfilled, (state, action) => {
+      .addCase(createSubCategoriesService.fulfilled, (state, action) => {
         if (state.data) {
           state.data.content = [action.payload, ...state.data.content];
           state.data.totalElements += 1;
@@ -123,18 +122,18 @@ const categoriesSlice = createSlice({
         }
         state.operations.isCreating = false;
       })
-      .addCase(createCategoriesService.rejected, (state, action) => {
+      .addCase(createSubCategoriesService.rejected, (state, action) => {
         state.error = action.payload as string;
         state.operations.isCreating = false;
       });
 
     builder
-      .addCase(updateCategoriesService.pending, (state) => {
+      .addCase(updateSubCategoriesService.pending, (state) => {
         state.operations.isUpdating = true;
         state.error = null;
       })
-      .addCase(updateCategoriesService.fulfilled, (state, action) => {
-        state.selectedCategories = action.payload;
+      .addCase(updateSubCategoriesService.fulfilled, (state, action) => {
+        state.selectedSubCategories = action.payload;
         state.operations.isUpdating = false;
 
         // Update in list
@@ -144,17 +143,17 @@ const categoriesSlice = createSlice({
           );
         }
       })
-      .addCase(updateCategoriesService.rejected, (state, action) => {
+      .addCase(updateSubCategoriesService.rejected, (state, action) => {
         state.error = action.payload as string;
         state.operations.isUpdating = false;
       });
 
     builder
-      .addCase(deleteCategoriesService.pending, (state) => {
+      .addCase(deleteSubCategoriesService.pending, (state) => {
         state.operations.isDeleting = true;
         state.error = null;
       })
-      .addCase(deleteCategoriesService.fulfilled, (state, action) => {
+      .addCase(deleteSubCategoriesService.fulfilled, (state, action) => {
         if (state.data) {
           state.data.content = state.data.content.filter(
             (user) => user.id !== action.payload,
@@ -169,7 +168,7 @@ const categoriesSlice = createSlice({
         }
         state.operations.isDeleting = false;
       })
-      .addCase(deleteCategoriesService.rejected, (state, action) => {
+      .addCase(deleteSubCategoriesService.rejected, (state, action) => {
         state.error = action.payload as string;
         state.operations.isDeleting = false;
       });
@@ -181,9 +180,9 @@ export const {
   setPageNo,
   clearError,
   setStatusFilter,
-  clearSelectedCategories,
+  clearSelectedSubCategories,
   resetFilters,
   resetState,
-} = categoriesSlice.actions;
+} = subCategoriesSlice.actions;
 
-export default categoriesSlice.reducer;
+export default subCategoriesSlice.reducer;

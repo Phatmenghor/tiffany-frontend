@@ -10,9 +10,9 @@ import {
 } from "../store/models/response/product-response";
 
 interface ProductTableHandlers {
-  handleEditProduct: (brand: ProductDetailResponseModel) => void;
-  handleProductViewDetail: (brand: ProductDetailResponseModel) => void;
-  handleDeleteProduct: (brand: ProductDetailResponseModel) => void;
+  handleEditProduct: (product: ProductDetailResponseModel) => void;
+  handleProductViewDetail: (product: ProductDetailResponseModel) => void;
+  handleDeleteProduct: (product: ProductDetailResponseModel) => void;
 }
 
 interface ProductPromotionTableOptions {
@@ -48,7 +48,7 @@ export const productPromotionTableColumns = ({
         return (
           <CustomAvatar
             imageUrl={product?.mainImageUrl}
-            name={product?.name}
+            name={product?.name || "No"}
             size="md"
           />
         );
@@ -177,9 +177,9 @@ export const productPromotionTableColumns = ({
       label: "Created At",
       minWidth: "10px",
       maxWidth: "400px",
-      render: (banner) => (
+      render: (product) => (
         <span className="text-sm text-muted-foreground">
-          {dateTimeFormat(banner?.createdAt)}
+          {dateTimeFormat(product?.createdAt)}
         </span>
       ),
     },
@@ -189,22 +189,22 @@ export const productPromotionTableColumns = ({
       label: "Actions",
       minWidth: "10px",
       maxWidth: "400px",
-      render: (brand) => (
+      render: (product) => (
         <div className="flex items-center gap-2">
           <ActionButton
             icon={<Eye className="w-4 h-4" />}
             tooltip="View Details"
-            onClick={() => handleProductViewDetail(brand)}
+            onClick={() => handleProductViewDetail(product)}
           />
           <ActionButton
             icon={<Edit className="w-4 h-4" />}
             tooltip="Edit Product"
-            onClick={() => handleEditProduct(brand)}
+            onClick={() => handleEditProduct(product)}
           />
           <ActionButton
             icon={<Trash className="w-4 h-4" />}
             tooltip="Delete Product"
-            onClick={() => handleDeleteProduct(brand)}
+            onClick={() => handleDeleteProduct(product)}
             variant="destructive"
           />
         </div>

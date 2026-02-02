@@ -81,7 +81,7 @@ export function ComboboxSelectCategories({
 
   // Helper function to remove duplicates by ID
   const removeDuplicates = (
-    items: CategoriesResponseModel[]
+    items: CategoriesResponseModel[],
   ): CategoriesResponseModel[] => {
     const seen = new Set<string>();
     return items.filter((item) => {
@@ -104,7 +104,7 @@ export function ComboboxSelectCategories({
           search,
           pageNo: newPage,
           pageSize: 10,
-        })
+        }),
       ).unwrap();
 
       if (!result) return;
@@ -147,7 +147,6 @@ export function ComboboxSelectCategories({
     ) {
       fetchData(debouncedSearch, page + 1);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inView, page, data.length]);
 
   const handleSearchChange = (value: string) => {
@@ -182,7 +181,7 @@ export function ComboboxSelectCategories({
               sizeClasses[size],
               !dataSelect && "text-muted-foreground",
               disabled && "opacity-50 cursor-not-allowed",
-              error && "border-red-500"
+              error && "border-red-500",
             )}
             disabled={disabled}
           >
@@ -221,7 +220,7 @@ export function ComboboxSelectCategories({
                         (item.id === "all" && !dataSelect) ||
                           dataSelect?.id === item.id
                           ? "opacity-100"
-                          : "opacity-0"
+                          : "opacity-0",
                       )}
                     />
                     {item.id === "all" ? item.name : <>{item.name}</>}

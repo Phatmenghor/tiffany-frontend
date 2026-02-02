@@ -21,6 +21,7 @@ export const ROUTES = {
     CUSTOMER: "/admin/customers",
     BANNER: "/admin/banner",
     CATEGORIES: "/admin/categories",
+    SUB_CATEGORIES: "/admin/sub-categories",
     PRODUCTS: "/admin/products",
     PRODUCTS_PROMOTION: "/admin/product-promotions",
   },

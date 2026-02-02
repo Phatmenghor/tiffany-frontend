@@ -6,9 +6,8 @@ import {
 export interface ProductFilters {
   search: string;
   pageNo: number;
-  businessId?: string;
-  categoryId?: string;
-  brandId?: string;
+  categoriesId?: string;
+  subCategoriesId?: string;
   status?: string;
   hasPromotion?: string;
 }

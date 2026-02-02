@@ -1,8 +1,3 @@
-/**
- * Product Management - Redux Slice
- * Manages Product state: data, loading, errors, filters, operations
- */
-
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { ProductManagementState } from "../models/type/product-type";
 import {
@@ -14,7 +9,6 @@ import {
   updateProductService,
 } from "../thunks/product-thunks";
 import { ProductStatus } from "@/constants/status/status";
-import { selectCategories } from "@/redux/features/master-data/store/selectors/categories-selector";
 
 /**
  * Initial state
@@ -116,7 +110,7 @@ const productSlice = createSlice({
         // Also update in list if exists (for consistency)
         if (state.data?.content) {
           const index = state.data.content.findIndex(
-            (user) => user.id === action.payload.id
+            (user) => user.id === action.payload.id,
           );
           if (index !== -1) {
             state.data.content[index] = action.payload;
@@ -138,7 +132,7 @@ const productSlice = createSlice({
           state.data.content = [action.payload, ...state.data.content];
           state.data.totalElements += 1;
           state.data.totalPages = Math.ceil(
-            state.data.totalElements / state.data.pageSize
+            state.data.totalElements / state.data.pageSize,
           );
         }
         state.operations.isCreating = false;
@@ -160,7 +154,7 @@ const productSlice = createSlice({
         // Update in list
         if (state.data) {
           state.data.content = state.data.content.map((user) =>
-            user.id === action.payload.id ? action.payload : user
+            user.id === action.payload.id ? action.payload : user,
           );
         }
       })
@@ -177,11 +171,11 @@ const productSlice = createSlice({
       .addCase(deleteProductService.fulfilled, (state, action) => {
         if (state.data) {
           state.data.content = state.data.content.filter(
-            (user) => user.id !== action.payload
+            (user) => user.id !== action.payload,
           );
           state.data.totalElements -= 1;
           state.data.totalPages = Math.ceil(
-            state.data.totalElements / state.data.pageSize
+            state.data.totalElements / state.data.pageSize,
           );
           state.data.last = state.data.pageNo >= state.data.totalPages;
           state.data.hasNext = !state.data.last;

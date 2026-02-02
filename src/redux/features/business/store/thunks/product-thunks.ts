@@ -1,8 +1,3 @@
-/**
- * Product Management - Async Thunks
- * Redux thunks for Product CRUD operations
- */
-
 import { axiosClientWithAuth } from "@/utils/axios";
 import { createApiThunk } from "@/utils/axios/api-wrapper";
 import {
@@ -20,7 +15,7 @@ export const fetchAllProductAdminService = createApiThunk<
 >("products/fetchAllByAdmin", async (params) => {
   const response = await axiosClientWithAuth.post(
     "/api/v1/products/admin/all",
-    params
+    params,
   );
   return response.data.data;
 });
@@ -33,10 +28,10 @@ export const fetchAllProductService = createApiThunk<any, AllProductRequest>(
   async (params) => {
     const response = await axiosClientWithAuth.post(
       "/api/v1/products/all",
-      params
+      params,
     );
     return response.data.data;
-  }
+  },
 );
 
 /**
@@ -46,10 +41,10 @@ export const fetchProductByIdService = createApiThunk<any, string>(
   "products/fetchById",
   async (productId) => {
     const response = await axiosClientWithAuth.get(
-      `/api/v1/products/${productId}`
+      `/api/v1/products/${productId}`,
     );
     return response.data.data;
-  }
+  },
 );
 
 /**
@@ -60,10 +55,10 @@ export const createProductService = createApiThunk<any, CreateProductData>(
   async (productData) => {
     const response = await axiosClientWithAuth.post(
       "/api/v1/products",
-      productData
+      productData,
     );
     return response.data.data;
-  }
+  },
 );
 
 /**
@@ -74,10 +69,10 @@ export const updateProductService = createApiThunk<any, UpdateProductParams>(
   async ({ productId, productData }) => {
     const response = await axiosClientWithAuth.put(
       `/api/v1/products/${productId}`,
-      productData
+      productData,
     );
     return response.data.data;
-  }
+  },
 );
 
 /**
@@ -87,8 +82,8 @@ export const deleteProductService = createApiThunk<any, string>(
   "products/delete",
   async (bannerId) => {
     const response = await axiosClientWithAuth.delete(
-      `/api/v1/products/${bannerId}`
+      `/api/v1/products/${bannerId}`,
     );
     return response.data.data;
-  }
+  },
 );

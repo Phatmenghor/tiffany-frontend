@@ -94,7 +94,10 @@ export function ProductDetailModal({
               value={productData.categoryName || "---"}
             />
 
-            <DetailRow label="Brand" value={productData.brandName || "---"} />
+            <DetailRow
+              label="SubCategory"
+              value={productData.subCategoryName || "---"}
+            />
           </DetailSection>
 
           {/* Pricing Information */}
@@ -126,9 +129,9 @@ export function ProductDetailModal({
                     productData.displayPromotionFromDate &&
                     productData.displayPromotionToDate
                       ? `${dateTimeFormat(
-                          productData.displayPromotionFromDate
+                          productData.displayPromotionFromDate,
                         )} - ${dateTimeFormat(
-                          productData.displayPromotionToDate
+                          productData.displayPromotionToDate,
                         )}`
                       : "---"
                   }
@@ -278,11 +281,6 @@ export function ProductDetailModal({
                   {productData.id}
                 </span>
               }
-            />
-
-            <DetailRow
-              label="Business Name"
-              value={productData.businessName || "---"}
             />
 
             <DetailRow

@@ -5,17 +5,18 @@ import {
   selectIsLoading,
   selectOperations,
   selectPagination,
-  selectProduct,
-  selectProductContent,
-  selectProductState,
-} from "../selectors/product-selector";
+  selectsubCategories,
+  selectSubCategoriesContent,
+  selectSubCategoriesState,
+} from "../selectors/sub-categories-selector";
 
-export const useProductState = () => {
+export const useSubCategoriesState = () => {
   const dispatch = useAppDispatch();
 
-  const productState = useAppSelector(selectProductState);
-  const productData = useAppSelector(selectProduct);
-  const productContent = useAppSelector(selectProductContent);
+  // Redux selectors
+  const subCategoriesState = useAppSelector(selectSubCategoriesState);
+  const subCategoriesData = useAppSelector(selectsubCategories);
+  const subCategoriesContent = useAppSelector(selectSubCategoriesContent);
   const filters = useAppSelector(selectFilters);
   const operations = useAppSelector(selectOperations);
   const pagination = useAppSelector(selectPagination);
@@ -23,9 +24,9 @@ export const useProductState = () => {
   const error = useAppSelector(selectError);
 
   return {
-    productState,
-    productData,
-    productContent,
+    subCategoriesState,
+    subCategoriesData,
+    subCategoriesContent,
     isLoading,
     error,
     filters,

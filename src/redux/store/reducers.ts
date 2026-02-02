@@ -8,6 +8,7 @@ import usersReducer from "../features/auth/store/slice/users-slice";
 
 import bannerReducer from "../features/master-data/store/slice/banner-slice";
 import categoriesReducer from "../features/master-data/store/slice/categories-slice";
+import subCategoriesReducer from "../features/master-data/store/slice/sub-categories-slice";
 
 import productReducer from "../features/business/store/slice/product-slice";
 import homeReducer from "../features/main/store/slice/home-slice";
@@ -34,6 +35,7 @@ export const reducers = {
   // Master Data (Admin)
   banner: bannerReducer,
   categories: categoriesReducer,
+  subCategories: subCategoriesReducer,
 
   // Business
   products: productReducer,

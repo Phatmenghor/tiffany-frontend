@@ -67,28 +67,19 @@ export function CategoriesDetailModal({
               name={categoriesData?.name}
               size="xl"
             />
+
             <DetailRow
               label="Categories Name"
               value={categoriesData?.name || "---"}
             />
 
             <DetailRow label="Status" value={categoriesData?.status || "---"} />
-
-            <DetailRow
-              label="Total Products"
-              value={categoriesData?.totalProducts || "---"}
-            />
-
-            <DetailRow
-              label="Active Products"
-              value={categoriesData?.activeProducts || "---"}
-            />
           </DetailSection>
 
           {/* System Information */}
           <DetailSection title="System Information">
             <DetailRow
-              label="Banner ID"
+              label="Categories ID"
               value={
                 <span className="text-xs font-mono bg-muted px-2 py-1 rounded break-all">
                   {categoriesData?.id}

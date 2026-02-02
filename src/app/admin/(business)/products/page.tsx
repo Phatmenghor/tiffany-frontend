@@ -28,22 +28,21 @@ import ProductModal from "@/redux/features/business/components/product-modal";
 import { ProductDetailModal } from "@/redux/features/business/components/product-detail-modal";
 import { CustomSelect } from "@/components/shared/common/custom-select";
 import { PRODUCT_STATUS_FILTER } from "@/constants/status/filter-status";
-import { ComboboxSelectBrand } from "@/components/shared/combobox/combobox_select_brand";
 import { ComboboxSelectCategories } from "@/components/shared/combobox/combobox_select_categories";
 import { CategoriesResponseModel } from "@/redux/features/master-data/store/models/response/categories-response";
-import { BrandResponseModel } from "@/redux/features/master-data/store/models/response/brand-response";
 import { useAdminCleanup } from "@/hooks/use-cleanup-on-unmount";
 import { AppDefault } from "@/constants/app-resource/default/default";
 import { setGlobalPageSize } from "@/redux/store/slices/global-settings-slice";
 import { selectGlobalPageSize } from "@/redux/store/selectors/global-settings-selectors";
 import { useAppSelector } from "@/redux/store";
+import { SubCategoriesResponseModel } from "@/redux/features/master-data/store/models/response/sub-categories-response";
+import { ComboboxSelectSubCategories } from "@/components/shared/combobox/combobox_select_sub_categories";
 
 export default function ProductPage() {
   // Clean up state when leaving admin area (performance optimization)
   useAdminCleanup(resetState);
   const searchParams = useSearchParams();
 
-  // Redux state
   const {
     productState,
     productData,
@@ -55,16 +54,14 @@ export default function ProductPage() {
     dispatch,
   } = useProductState();
 
-  // Local UI state for modals only
   const [modalState, setModalState] = useState({
     isOpen: false,
     mode: ModalMode.CREATE_MODE,
     productId: "",
   });
 
-  const [selectedBrand, setSelectedBrand] = useState<BrandResponseModel | null>(
-    null,
-  );
+  const [selectedSubCategory, setSelectedSubCategory] =
+    useState<SubCategoriesResponseModel | null>(null);
   const [selectedCategories, setSelectedCategories] =
     useState<CategoriesResponseModel | null>(null);
 
@@ -78,7 +75,6 @@ export default function ProductPage() {
     product: null as ProductDetailResponseModel | null,
   });
 
-  // Global page size from global settings (synced across all admin pages)
   const globalPageSize = useAppSelector(selectGlobalPageSize);
 
   const debouncedSearch = useDebounce(filters.search, 400);
@@ -87,7 +83,6 @@ export default function ProductPage() {
     baseRoute: ROUTES.ADMIN.PRODUCTS,
   });
 
-  // Initialize URL and Redux state on mount
   useEffect(() => {
     const pageParam = searchParams.get("pageNo");
     const pageFromUrl = pageParam ? parseInt(pageParam, 10) : 1;
@@ -105,6 +100,8 @@ export default function ProductPage() {
         pageSize: globalPageSize,
         status:
           filters.status == ProductStatus.ALL ? undefined : filters.status,
+        categoryId: selectedCategories?.id,
+        subCategoryId: selectedSubCategory?.id,
       }),
     );
   }, [
@@ -113,6 +110,8 @@ export default function ProductPage() {
     filters.pageNo,
     filters.status,
     globalPageSize,
+    selectedCategories,
+    selectedSubCategory,
   ]);
 
   // Event handlers
@@ -227,8 +226,10 @@ export default function ProductPage() {
     dispatch(selectProductStatus(status));
   };
 
-  const handleBrandChange = (brand: BrandResponseModel | null) => {
-    setSelectedBrand(brand);
+  const handleSubCategoriesChange = (
+    subCategory: SubCategoriesResponseModel | null,
+  ) => {
+    setSelectedSubCategory(subCategory);
   };
 
   const handleCategoriesChange = (
@@ -255,17 +256,17 @@ export default function ProductPage() {
           openModal={handleCreateBrand}
         >
           <div className="flex items-center gap-3">
-            <ComboboxSelectBrand
-              dataSelect={selectedBrand}
-              onChangeSelected={handleBrandChange}
-              placeholder="All Brand"
-              showAllOption={true}
-            />
-
             <ComboboxSelectCategories
               dataSelect={selectedCategories}
               onChangeSelected={handleCategoriesChange}
               placeholder="All Categires"
+              showAllOption={true}
+            />
+
+            <ComboboxSelectSubCategories
+              dataSelect={selectedSubCategory}
+              onChangeSelected={handleSubCategoriesChange}
+              placeholder="All Sub Categories"
               showAllOption={true}
             />
 

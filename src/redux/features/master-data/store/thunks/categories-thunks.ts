@@ -1,16 +1,11 @@
-/**
- * Categories Management - Async Thunks
- * Redux thunks for Categories CRUD operations
- */
-
 import { axiosClientWithAuth } from "@/utils/axios";
 import { createApiThunk } from "@/utils/axios/api-wrapper";
 
 import {
   AllCategoriesRequest,
+  CreateCategoriesData,
   UpdateCategoriesParams,
 } from "../models/request/categories-request";
-import { CreateCategoriesData } from "../models/schema/categories-schema";
 
 /**
  * Fetch all categories

@@ -31,7 +31,10 @@ import {
 import { clearError, clearSelectedBanner } from "../store/slice/banner-slice";
 import { uploadImage, isBase64Image } from "@/utils/common/upload-image";
 import { showToast } from "@/components/shared/common/show-toast";
-import { BANNER_STATUS_CREATE_UPDATE } from "@/constants/status/create-update-status";
+import {
+  BANNER_STATUS_CREATE_UPDATE,
+  STATUS_CREATE_UPDATE,
+} from "@/constants/status/create-update-status";
 import { ClickableImageUpload } from "@/components/shared/form-field/clickable-image-upload";
 import {
   CreateBannerRequest,
@@ -253,7 +256,7 @@ export default function BannerModal({
                       name="status"
                       label="Status"
                       placeholder="Select status"
-                      options={BANNER_STATUS_CREATE_UPDATE}
+                      options={STATUS_CREATE_UPDATE}
                       required
                       disabled={isProcessing}
                       error={errors.status}

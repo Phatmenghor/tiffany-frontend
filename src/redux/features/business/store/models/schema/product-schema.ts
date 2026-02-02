@@ -47,7 +47,7 @@ export const sizeSchema = z
       message:
         "Promotion value and dates are required when promotion type is selected",
       path: ["promotionValue"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -67,7 +67,7 @@ export const sizeSchema = z
     {
       message: "Promotion end date must be after start date",
       path: ["promotionToDate"],
-    }
+    },
   );
 
 /**
@@ -76,15 +76,12 @@ export const sizeSchema = z
 const baseProductSchema = z.object({
   name: z.string().min(1, "Product name is required"),
   description: z.string().min(1, "Description is required"),
-  categoryId: z.string().min(1, "Category is required"),
-  brandId: z.string().optional(),
+  subCategoryId: z.string().min(1, "Sub-category is required"),
+  price: z.number().min(0, "Price must be positive").optional(),
   mainImageUrl: z
     .string()
     .url("Invalid main image URL")
     .or(z.string().min(1, "Main image required")),
-
-  // Pricing - optional because it depends on sizes
-  price: z.number().min(0, "Price must be positive").optional(),
   promotionType: z.string().optional(),
   promotionValue: z
     .number()
@@ -95,6 +92,7 @@ const baseProductSchema = z.object({
 
   images: z.array(imageSchema).optional().default([]),
   sizes: z.array(sizeSchema).optional().default([]),
+
   status: z.string().min(1, "Status is required"),
 });
 
@@ -113,7 +111,7 @@ export const createProductSchema = baseProductSchema
     {
       message: "Price is required when product has no sizes",
       path: ["price"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -138,7 +136,7 @@ export const createProductSchema = baseProductSchema
       message:
         "Promotion value and dates are required when promotion type is selected",
       path: ["promotionValue"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -159,7 +157,7 @@ export const createProductSchema = baseProductSchema
     {
       message: "Promotion end date must be after start date",
       path: ["promotionToDate"],
-    }
+    },
   );
 
 /**
@@ -180,7 +178,7 @@ export const updateProductSchema = baseProductSchema
     {
       message: "Price is required when product has no sizes",
       path: ["price"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -205,7 +203,7 @@ export const updateProductSchema = baseProductSchema
       message:
         "Promotion value and dates are required when promotion type is selected",
       path: ["promotionValue"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -226,7 +224,7 @@ export const updateProductSchema = baseProductSchema
     {
       message: "Promotion end date must be after start date",
       path: ["promotionToDate"],
-    }
+    },
   );
 
 /**
@@ -236,8 +234,7 @@ export type ProductFormData = {
   id?: string;
   name: string;
   description: string;
-  categoryId: string;
-  brandId?: string;
+  subCategoryId: string;
   price: number;
   mainImageUrl: string;
   promotionType?: string;

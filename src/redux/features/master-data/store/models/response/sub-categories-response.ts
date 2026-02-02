@@ -1,10 +1,10 @@
 import { BasePagination } from "@/utils/common/pagination";
 
-export interface AllCategoriesResponseModel extends BasePagination {
-  content: CategoriesResponseModel[];
+export interface AllSubCategoriesResponseModel extends BasePagination {
+  content: SubCategoriesResponseModel[];
 }
 
-export interface CategoriesResponseModel {
+export interface SubCategoriesResponseModel {
   id: string;
   createdAt: string;
   updatedAt: string;
@@ -13,4 +13,6 @@ export interface CategoriesResponseModel {
   name: string;
   imageUrl: string;
   status: string;
+  categoryId: string;
+  categoryName: string;
 }

@@ -21,44 +21,48 @@ import {
 } from "@/constants/status/create-update-status";
 import { ClickableImageUpload } from "@/components/shared/form-field/clickable-image-upload";
 import {
-  selectError,
-  selectIsFetchingDetail,
-  selectOperations,
-} from "../store/selectors/categories-selector";
-import {
-  CategoriesFormData,
-  createCategoriesSchema,
-  updateCategoriesSchema,
-} from "../store/models/schema/categories-schema";
-import {
-  createCategoriesService,
-  fetchCategoriesByIdService,
-  updateCategoriesService,
-} from "../store/thunks/categories-thunks";
-import {
   clearError,
   clearSelectedCategories,
 } from "../store/slice/categories-slice";
 import { Loading } from "@/components/shared/common/loading";
-import { CreateCategoriesData } from "../store/models/request/categories-request";
+import {
+  createSubCategoriesService,
+  fetchSubCategoriesByIdService,
+  updateSubCategoriesService,
+} from "../store/thunks/sub-categories-thunks";
+import { CreateSubCategoriesData } from "../store/models/request/sub-categories-request";
+import {
+  createSubCategoriesSchema,
+  SubCategoriesFormData,
+  updateSubCategoriesSchema,
+} from "../store/models/schema/sub-categories-schema";
+import {
+  selectError,
+  selectIsFetchingDetail,
+  selectOperations,
+} from "../store/selectors/sub-categories-selector";
+import { ComboboxSelectCategories } from "@/components/shared/combobox/combobox_select_categories";
+import { CategoriesResponseModel } from "../store/models/response/categories-response";
 
 type Props = {
   mode: ModalMode;
-  categoriesId?: string;
+  subCategoriesId?: string;
   onClose: () => void;
   isOpen: boolean;
 };
 
-export default function CategoriesModal({
+export default function SubCategoriesModal({
   isOpen,
   onClose,
-  categoriesId,
+  subCategoriesId,
   mode,
 }: Props) {
   const isCreate = mode === ModalMode.CREATE_MODE;
 
   // Local state for image upload loading
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [selectedCategory, setSelectedCategory] =
+    useState<CategoriesResponseModel | null>(null);
 
   const dispatch = useAppDispatch();
 
@@ -74,13 +78,14 @@ export default function CategoriesModal({
     setValue,
     watch,
     formState: { errors, isDirty },
-  } = useForm<CategoriesFormData>({
+  } = useForm<SubCategoriesFormData>({
     resolver: zodResolver(
-      isCreate ? createCategoriesSchema : updateCategoriesSchema,
+      isCreate ? createSubCategoriesSchema : updateSubCategoriesSchema,
     ) as any,
     defaultValues: {
       name: "",
       imageUrl: "",
+      categoriesId: "",
       status: Status.ACTIVE,
     },
     mode: "onChange",
@@ -93,37 +98,39 @@ export default function CategoriesModal({
       reset({
         name: "",
         imageUrl: "",
+        categoriesId: "",
         status: Status.ACTIVE,
       });
     }
-  }, [isOpen, categoriesId, reset]);
+  }, [isOpen, subCategoriesId, reset]);
 
-  // Fetch banner data for edit mode
+  // Fetch sub-categories data for edit mode
   useEffect(() => {
-    const fetchBrandData = async () => {
-      if (!categoriesId || !isOpen || isCreate) return;
+    const fetchSubCategoriesData = async () => {
+      if (!subCategoriesId || !isOpen || isCreate) return;
 
       try {
         const resultAction = await dispatch(
-          fetchCategoriesByIdService(categoriesId),
+          fetchSubCategoriesByIdService(subCategoriesId),
         );
 
-        if (fetchCategoriesByIdService.fulfilled.match(resultAction)) {
+        if (fetchSubCategoriesByIdService.fulfilled.match(resultAction)) {
           const data = resultAction.payload;
 
           reset({
             name: data?.name || "",
             imageUrl: data?.imageUrl || "",
+            categoriesId: data?.categoriesId || "",
             status: data?.status || "",
           });
         }
       } catch (error) {
-        console.error("Error fetching categories data:", error);
+        console.error("Error fetching sub-categories data:", error);
       }
     };
 
-    fetchBrandData();
-  }, [categoriesId, isOpen, isCreate, reset, dispatch]);
+    fetchSubCategoriesData();
+  }, [subCategoriesId, isOpen, isCreate, reset, dispatch]);
 
   // Clear errors when modal opens
   useEffect(() => {
@@ -132,7 +139,7 @@ export default function CategoriesModal({
     }
   }, [isOpen, dispatch]);
 
-  const onSubmit = async (data: CategoriesFormData) => {
+  const onSubmit = async (data: SubCategoriesFormData) => {
     try {
       let finalImageUrl = data.imageUrl;
 
@@ -142,9 +149,9 @@ export default function CategoriesModal({
         try {
           finalImageUrl = await uploadImage(finalImageUrl);
         } catch (uploadError) {
-          console.error("Error uploading categories image:", uploadError);
+          console.error("Error uploading sub-categories image:", uploadError);
           showToast.error(
-            "Failed to upload categories image. Please try again.",
+            "Failed to upload sub-categories image. Please try again.",
           );
           return;
         } finally {
@@ -153,33 +160,35 @@ export default function CategoriesModal({
       }
 
       if (isCreate) {
-        const payload: CreateCategoriesData = {
+        const payload: CreateSubCategoriesData = {
           name: data?.name || "",
           imageUrl: finalImageUrl || "",
+          categoriesId: data.categoriesId || "",
           status: data.status,
         };
-        await dispatch(createCategoriesService(payload)).unwrap();
-        showToast.success("Categories created successfully");
+        await dispatch(createSubCategoriesService(payload)).unwrap();
+        showToast.success("Sub Categories created successfully");
         handleClose();
       } else {
-        const payload: CreateCategoriesData = {
+        const payload: CreateSubCategoriesData = {
           name: data?.name || "",
           imageUrl: finalImageUrl || "",
+          categoriesId: data.categoriesId || "",
           status: data.status,
         };
         await dispatch(
-          updateCategoriesService({
-            categoriesId: categoriesId!,
-            categoriesData: payload,
+          updateSubCategoriesService({
+            subCategoriesId: subCategoriesId!,
+            subCategoriesData: payload,
           }),
         ).unwrap();
-        showToast.success("Categories updated successfully");
+        showToast.success("Sub Categories updated successfully");
         handleClose();
       }
     } catch (error: any) {
       showToast.error(
         error?.message ||
-          `Failed to ${isCreate ? "create" : "update"} categories`,
+          `Failed to ${isCreate ? "create" : "update"} Sub categories`,
       );
     }
   };
@@ -199,11 +208,11 @@ export default function CategoriesModal({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="w-[90%] max-w-4xl max-h-[90vh] p-0 flex flex-col">
         <FormHeader
-          title={isCreate ? "Create New Categories" : "Edit Categories"}
+          title={isCreate ? "Create New Sub Categories" : "Edit Sub Categories"}
           description={
             isCreate
-              ? "Upload an image and configure categories settings"
-              : "Update categories information below"
+              ? "Upload an image and configure sub-categories settings"
+              : "Update sub-categories information below"
           }
           isCreate={isCreate}
         />
@@ -232,7 +241,7 @@ export default function CategoriesModal({
                 {/* Categories Image Section - Prominent display */}
                 <div className="space-y-3">
                   <ClickableImageUpload
-                    label="Category Image"
+                    label="Sub-Categories Image"
                     value={imageUrl}
                     onChange={(base64) => setValue("imageUrl", base64)}
                     aspectRatio="square"
@@ -254,10 +263,26 @@ export default function CategoriesModal({
                     <TextField
                       control={control}
                       name="name"
-                      label="Name Brand"
-                      placeholder="Enter name brand"
+                      label="Name Sub Categories"
+                      placeholder="Enter name sub categories"
                       disabled={isProcessing}
                       error={errors.name}
+                    />
+
+                    <ComboboxSelectCategories
+                      dataSelect={selectedCategory}
+                      onChangeSelected={(category) => {
+                        setSelectedCategory(category);
+                        setValue("categoriesId", category?.id || "", {
+                          shouldDirty: true,
+                        });
+                      }}
+                      label="Categories"
+                      placeholder="Select categories"
+                      required
+                      disabled={isProcessing}
+                      error={errors.categoriesId?.message}
+                      showAllOption={false}
                     />
 
                     <SelectField
@@ -281,13 +306,13 @@ export default function CategoriesModal({
               isCreate={isCreate}
               createMessage={
                 isProcessing
-                  ? "Uploading categories..."
-                  : "Creating categories..."
+                  ? "Uploading sub categories..."
+                  : "Creating sub categories..."
               }
               updateMessage={
                 isProcessing
-                  ? "Uploading categories..."
-                  : "Updating categories..."
+                  ? "Uploading sub categories..."
+                  : "Updating sub categories..."
               }
             >
               <CancelButton onClick={handleClose} disabled={isProcessing} />
@@ -295,8 +320,8 @@ export default function CategoriesModal({
                 isSubmitting={isProcessing}
                 isDirty={isDirty}
                 isCreate={isCreate}
-                createText="Create Categories"
-                updateText="Update Categories"
+                createText="Create Sub Categories"
+                updateText="Update Sub Categories"
                 submittingCreateText={
                   isProcessing ? "Uploading..." : "Creating..."
                 }

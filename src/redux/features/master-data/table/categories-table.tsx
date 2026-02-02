@@ -10,9 +10,9 @@ import {
 } from "../store/models/response/categories-response";
 
 interface CategoriesTableHandlers {
-  handleEditCategories: (brand: CategoriesResponseModel) => void;
-  handleCategoriesViewDetail: (brand: CategoriesResponseModel) => void;
-  handleDeleteCategories: (brand: CategoriesResponseModel) => void;
+  handleEditCategories: (categories: CategoriesResponseModel) => void;
+  handleCategoriesViewDetail: (categories: CategoriesResponseModel) => void;
+  handleDeleteCategories: (categories: CategoriesResponseModel) => void;
 }
 
 interface CategoriesTableOptions {
@@ -80,19 +80,6 @@ export const categoriesTableColumns = ({
       render: (categories) => (
         <span className="text-xs text-muted-foreground">
           {categories?.status || "---"}
-        </span>
-      ),
-    },
-
-    {
-      key: "totalProducts",
-      label: "Total Products",
-      minWidth: "10px",
-      maxWidth: "400px",
-      truncate: true,
-      render: (categories) => (
-        <span className="text-xs text-muted-foreground">
-          {categories?.totalProducts || "---"}
         </span>
       ),
     },

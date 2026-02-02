@@ -4,28 +4,34 @@ import { Edit, Eye, Trash } from "lucide-react";
 import { TableColumn } from "@/components/shared/common/data-table";
 import { ActionButton } from "@/components/shared/button/action-button";
 import { CustomAvatar } from "@/components/shared/avator/custom-avator";
+import { CategoriesResponseModel } from "../store/models/response/categories-response";
 import {
-  AllProductResponseModel,
-  ProductDetailResponseModel,
-} from "../store/models/response/product-response";
+  AllSubCategoriesResponseModel,
+  SubCategoriesResponseModel,
+} from "../store/models/response/sub-categories-response";
 
-interface ProductTableHandlers {
-  handleEditProduct: (product: ProductDetailResponseModel) => void;
-  handleProductViewDetail: (product: ProductDetailResponseModel) => void;
-  handleDeleteProduct: (product: ProductDetailResponseModel) => void;
+interface SubCategoriesTableHandlers {
+  handleEditSubCategories: (subCategory: SubCategoriesResponseModel) => void;
+  handleSubCategoriesViewDetail: (
+    subCategory: SubCategoriesResponseModel,
+  ) => void;
+  handleDeleteSubCategories: (subCategory: SubCategoriesResponseModel) => void;
 }
 
-interface ProductTableOptions {
-  data: AllProductResponseModel | null;
-  handlers: ProductTableHandlers;
+interface SubCategoriesTableOptions {
+  data: AllSubCategoriesResponseModel | null;
+  handlers: SubCategoriesTableHandlers;
 }
 
-export const productTableColumns = ({
+export const subCategoriesTableColumns = ({
   data,
   handlers,
-}: ProductTableOptions): TableColumn<ProductDetailResponseModel>[] => {
-  const { handleEditProduct, handleProductViewDetail, handleDeleteProduct } =
-    handlers;
+}: SubCategoriesTableOptions): TableColumn<SubCategoriesResponseModel>[] => {
+  const {
+    handleEditSubCategories,
+    handleSubCategoriesViewDetail,
+    handleDeleteSubCategories,
+  } = handlers;
 
   return [
     {
@@ -41,14 +47,14 @@ export const productTableColumns = ({
     },
     {
       key: "imageUrl",
-      label: "Product Image",
+      label: "Categories Image",
       minWidth: "10px",
       maxWidth: "400px",
-      render: (product) => {
+      render: (categories) => {
         return (
           <CustomAvatar
-            imageUrl={product?.mainImageUrl}
-            name={product?.name || "No"}
+            imageUrl={categories.imageUrl}
+            name={categories?.name}
             size="md"
           />
         );
@@ -57,52 +63,26 @@ export const productTableColumns = ({
 
     {
       key: "name",
-      label: "Name",
+      label: "Sub-Categories Name",
       minWidth: "10px",
       maxWidth: "400px",
       truncate: true,
-      render: (product) => (
+      render: (categories) => (
         <span className="text-xs text-muted-foreground">
-          {product?.name || "---"}
+          {categories?.name || "---"}
         </span>
       ),
     },
 
     {
-      key: "displayPrice",
-      label: "Price",
+      key: "categoryName",
+      label: "Category Name",
       minWidth: "10px",
       maxWidth: "400px",
       truncate: true,
-      render: (product) => (
+      render: (categories) => (
         <span className="text-xs text-muted-foreground">
-          {product?.displayPrice || "---"}
-        </span>
-      ),
-    },
-
-    {
-      key: "displayOriginPrice",
-      label: "Origin Price",
-      minWidth: "10px",
-      maxWidth: "400px",
-      truncate: true,
-      render: (product) => (
-        <span className="text-xs text-muted-foreground">
-          {product?.displayOriginPrice || "---"}
-        </span>
-      ),
-    },
-
-    {
-      key: "hasSizes",
-      label: "Has Sizes",
-      minWidth: "10px",
-      maxWidth: "400px",
-      truncate: true,
-      render: (product) => (
-        <span className="text-xs text-muted-foreground">
-          {product?.hasSizes ? "Have Size" : "None Size"}
+          {categories?.categoryName || "---"}
         </span>
       ),
     },
@@ -113,9 +93,9 @@ export const productTableColumns = ({
       minWidth: "10px",
       maxWidth: "400px",
       truncate: true,
-      render: (product) => (
+      render: (categories) => (
         <span className="text-xs text-muted-foreground">
-          {product?.status || "---"}
+          {categories?.status || "---"}
         </span>
       ),
     },
@@ -125,9 +105,9 @@ export const productTableColumns = ({
       label: "Created At",
       minWidth: "10px",
       maxWidth: "400px",
-      render: (banner) => (
+      render: (categories) => (
         <span className="text-sm text-muted-foreground">
-          {dateTimeFormat(banner?.createdAt)}
+          {dateTimeFormat(categories?.createdAt)}
         </span>
       ),
     },
@@ -137,22 +117,22 @@ export const productTableColumns = ({
       label: "Actions",
       minWidth: "10px",
       maxWidth: "400px",
-      render: (product) => (
+      render: (categories) => (
         <div className="flex items-center gap-2">
           <ActionButton
             icon={<Eye className="w-4 h-4" />}
             tooltip="View Details"
-            onClick={() => handleProductViewDetail(product)}
+            onClick={() => handleSubCategoriesViewDetail(categories)}
           />
           <ActionButton
             icon={<Edit className="w-4 h-4" />}
-            tooltip="Edit Product"
-            onClick={() => handleEditProduct(product)}
+            tooltip="Edit Sub-Categories"
+            onClick={() => handleEditSubCategories(categories)}
           />
           <ActionButton
             icon={<Trash className="w-4 h-4" />}
-            tooltip="Delete Product"
-            onClick={() => handleDeleteProduct(product)}
+            tooltip="Delete Sub-Categories"
+            onClick={() => handleDeleteSubCategories(categories)}
             variant="destructive"
           />
         </div>

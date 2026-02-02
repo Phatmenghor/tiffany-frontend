@@ -21,35 +21,43 @@ import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useInView } from "react-intersection-observer";
 import { useDebounce } from "@/utils/debounce/debounce";
 import { useAppDispatch } from "@/redux/store";
-import { UserResponseModel } from "@/redux/features/auth/store/models/response/users-response";
-import { fetchAllUsersService } from "@/redux/features/auth/store/thunks/users-thunks";
+import { SubCategoriesResponseModel } from "@/redux/features/master-data/store/models/response/sub-categories-response";
+import { fetchAllSubCategoriesService } from "@/redux/features/master-data/store/thunks/sub-categories-thunks";
 
-interface ComboboxSelectUserProps {
-  dataSelect: UserResponseModel | null;
-  onChangeSelected: (item: UserResponseModel | null) => void;
+interface ComboboxSelectSubCategoryProps {
+  dataSelect: SubCategoriesResponseModel | null;
+  onChangeSelected: (item: SubCategoriesResponseModel | null) => void;
   disabled?: boolean;
   label?: string;
   required?: boolean;
   size?: "sm" | "md" | "lg";
   placeholder?: string;
+  showAllOption?: boolean;
   error?: string;
 }
 
-export function ComboboxSelectUser({
+const ALL_OPTION: SubCategoriesResponseModel = {
+  id: "all",
+  name: "All",
+  description: "",
+} as unknown as SubCategoriesResponseModel;
+
+export function ComboboxSelectSubCategories({
   dataSelect,
   onChangeSelected,
   disabled = false,
-  label = "User",
+  label = "Sub-Category",
   required = false,
   size = "md",
-  placeholder = "Select a user...",
+  placeholder = "Select a sub-category...",
+  showAllOption = true,
   error,
-}: ComboboxSelectUserProps) {
+}: ComboboxSelectSubCategoryProps) {
   const dispatch = useAppDispatch();
 
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [data, setData] = useState<UserResponseModel[]>([]);
+  const [data, setData] = useState<SubCategoriesResponseModel[]>([]);
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -73,8 +81,8 @@ export function ComboboxSelectUser({
 
   // Helper function to remove duplicates by ID
   const removeDuplicates = (
-    items: UserResponseModel[],
-  ): UserResponseModel[] => {
+    items: SubCategoriesResponseModel[],
+  ): SubCategoriesResponseModel[] => {
     const seen = new Set<string>();
     return items.filter((item) => {
       if (seen.has(item.id)) {
@@ -92,7 +100,7 @@ export function ComboboxSelectUser({
 
     try {
       const result = await dispatch(
-        fetchAllUsersService({
+        fetchAllSubCategoriesService({
           search,
           pageNo: newPage,
           pageSize: 10,
@@ -103,7 +111,11 @@ export function ComboboxSelectUser({
 
       if (newPage === 1) {
         const newData = result.content;
-        setData(removeDuplicates(newData));
+        if (showAllOption && !search) {
+          setData(removeDuplicates([ALL_OPTION, ...newData]));
+        } else {
+          setData(removeDuplicates(newData));
+        }
       } else {
         // Merge with existing data and remove duplicates
         setData((prev) => removeDuplicates([...prev, ...result.content]));
@@ -112,7 +124,7 @@ export function ComboboxSelectUser({
       setPage(result.pageNo);
       setLastPage(result.last);
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error("Error fetching sub-categories:", error);
     } finally {
       setLoading(false);
     }
@@ -123,7 +135,6 @@ export function ComboboxSelectUser({
     setLastPage(false);
     setData([]);
     fetchData(debouncedSearch, 1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch]);
 
   useEffect(() => {
@@ -135,22 +146,25 @@ export function ComboboxSelectUser({
     ) {
       fetchData(debouncedSearch, page + 1);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inView, page, data.length]);
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
   };
 
-  const handleSelect = (item: UserResponseModel) => {
-    onChangeSelected(item);
+  const handleSelect = (item: SubCategoriesResponseModel) => {
+    if (item.id === "all") {
+      onChangeSelected(null);
+    } else {
+      onChangeSelected(item);
+    }
     setOpen(false);
   };
 
   return (
     <div className="space-y-2 w-full">
       {label && (
-        <Label className="text-sm font-medium">
+        <Label className="text-[12px] font-normal text-gray-300">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </Label>
@@ -170,7 +184,7 @@ export function ComboboxSelectUser({
             )}
             disabled={disabled}
           >
-            {dataSelect ? dataSelect.fullName : placeholder}
+            {dataSelect ? dataSelect.name : placeholder}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -184,17 +198,17 @@ export function ComboboxSelectUser({
         >
           <Command shouldFilter={false}>
             <CommandInput
-              placeholder="Search user..."
+              placeholder="Search sub-category..."
               value={searchTerm}
               onValueChange={handleSearchChange}
             />
             <CommandList className="max-h-60 overflow-y-auto">
-              <CommandEmpty>No user found.</CommandEmpty>
+              <CommandEmpty>No sub-category found.</CommandEmpty>
               <CommandGroup>
                 {data.map((item, index) => (
                   <CommandItem
                     key={item.id}
-                    value={item.fullName}
+                    value={item.name}
                     onSelect={() => handleSelect(item)}
                     ref={index === data.length - 1 ? ref : null}
                     className={sizeClasses[size]}
@@ -202,15 +216,13 @@ export function ComboboxSelectUser({
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4",
-                        dataSelect?.id === item.id
+                        (item.id === "all" && !dataSelect) ||
+                          dataSelect?.id === item.id
                           ? "opacity-100"
                           : "opacity-0",
                       )}
                     />
-                    <span>
-                      {item?.fullName}
-                      {item?.role ? ` (${item.role})` : ""}
-                    </span>
+                    {item.id === "all" ? item.name : <>{item.name}</>}
                   </CommandItem>
                 ))}
               </CommandGroup>
@@ -223,7 +235,7 @@ export function ComboboxSelectUser({
 
               {!loading && lastPage && data.length > 0 && (
                 <div className="text-center py-2 text-sm text-gray-400">
-                  No more users
+                  No more sub-categories
                 </div>
               )}
             </CommandList>

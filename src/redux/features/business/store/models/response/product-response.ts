@@ -25,18 +25,16 @@ export interface ProductDetailResponseModel {
   displayPromotionFromDate: string;
   displayPromotionToDate: string;
   hasSizes: boolean;
-  quantityInCart: number;
-  hasActivePromotion: boolean;
+  hasPromotion: boolean;
   mainImageUrl: string;
   viewCount: number;
   favoriteCount: number;
   isFavorited: boolean;
-  businessId: string;
-  businessName: string;
+  quantityInCart: number;
+  subCategoryId: string;
+  subCategoryName: string;
   categoryId: string;
   categoryName: string;
-  brandId: string;
-  brandName: string;
   images: ProductImage[];
   sizes: ProductSize[];
 }
@@ -44,7 +42,6 @@ export interface ProductDetailResponseModel {
 interface ProductImage {
   id: string;
   imageUrl: string;
-  displayOrder: number;
   createdAt: string;
 }
 

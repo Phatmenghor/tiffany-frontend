@@ -21,6 +21,11 @@ export const USER_CUSTOMER_ROLE_CREATE_UPDATE = [
   { value: UserRole.CUSTOMER, label: "Customer" },
 ];
 
+export const STATUS_CREATE_UPDATE = [
+  { value: Status.ACTIVE, label: "Active" },
+  { value: Status.INACTIVE, label: "Draft" },
+];
+
 export const ACCOUNT_STATUS_CREATE_UPDATE = [
   { value: AccountStatus.ACTIVE, label: "Active" },
   { value: AccountStatus.INACTIVE, label: "Inactive" },

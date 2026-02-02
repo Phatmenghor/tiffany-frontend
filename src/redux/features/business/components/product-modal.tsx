@@ -35,11 +35,7 @@ import {
   PROMOTION_TYPE_CREATE_UPDATE,
 } from "@/constants/status/create-update-status";
 import { ClickableImageUpload } from "@/components/shared/form-field/clickable-image-upload";
-import { ComboboxSelectBrand } from "@/components/shared/combobox/combobox_select_brand";
-import { ComboboxSelectCategories } from "@/components/shared/combobox/combobox_select_categories";
 import { uploadImage, isBase64Image } from "@/utils/common/upload-image";
-import { BrandResponseModel } from "@/redux/features/master-data/store/models/response/brand-response";
-import { CategoriesResponseModel } from "@/redux/features/master-data/store/models/response/categories-response";
 import {
   createProductSchema,
   ProductFormData,
@@ -47,6 +43,8 @@ import {
 } from "../store/models/schema/product-schema";
 import { DateTimePickerField } from "@/components/shared/form-field/date-picker-field";
 import { Loading } from "@/components/shared/common/loading";
+import { ComboboxSelectSubCategories } from "@/components/shared/combobox/combobox_select_sub_categories";
+import { SubCategoriesResponseModel } from "../../master-data/store/models/response/sub-categories-response";
 
 type Props = {
   mode: ModalMode;
@@ -55,7 +53,7 @@ type Props = {
   isOpen: boolean;
 };
 
-const MAX_PRODUCT_IMAGES = 5; // Maximum number of product images allowed
+const MAX_PRODUCT_IMAGES = 5;
 
 export default function ProductModal({
   isOpen,
@@ -75,12 +73,8 @@ export default function ProductModal({
 
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isProcessingImages, setIsProcessingImages] = useState(false);
-  const [selectedBrand, setSelectedBrand] = useState<BrandResponseModel | null>(
-    null,
-  );
-  const [selectedCategory, setSelectedCategory] =
-    useState<CategoriesResponseModel | null>(null);
-
+  const [selectedSubCategory, setSelectedSubCategory] =
+    useState<SubCategoriesResponseModel | null>(null);
   const {
     control,
     handleSubmit,
@@ -96,8 +90,7 @@ export default function ProductModal({
       id: "",
       name: "",
       description: "",
-      categoryId: "",
-      brandId: "",
+      subCategoryId: "",
       price: 0,
       mainImageUrl: "",
       promotionType: "NONE",
@@ -238,27 +231,18 @@ export default function ProductModal({
         if (fetchProductByIdService.fulfilled.match(resultAction)) {
           const data = resultAction.payload;
 
-          // Set combobox selections
-          if (data.brandId) {
-            setSelectedBrand({
-              id: data.brandId,
-              name: data.brandName,
-            } as BrandResponseModel);
-          }
-
-          if (data.categoryId) {
-            setSelectedCategory({
-              id: data.categoryId,
-              name: data.categoryName,
-            } as CategoriesResponseModel);
+          if (data.subCategoryId) {
+            setSelectedSubCategory({
+              id: data.subCategoryId,
+              name: data.subCategoryName,
+            } as SubCategoriesResponseModel);
           }
 
           reset({
             id: data.id,
             name: data.name || "",
             description: data.description || "",
-            categoryId: data.categoryId || "",
-            brandId: data.brandId || "",
+            subCategoryId: data.categoryId || "",
             price: data.price || 0,
             mainImageUrl: data.mainImageUrl || "",
             promotionType: data.promotionType || "NONE",
@@ -281,13 +265,11 @@ export default function ProductModal({
   // Reset form for create mode
   useEffect(() => {
     if (isOpen && isCreate) {
-      setSelectedBrand(null);
-      setSelectedCategory(null);
+      setSelectedSubCategory(null);
       reset({
         name: "",
         description: "",
-        categoryId: "",
-        brandId: "",
+        subCategoryId: "",
         price: 0,
         mainImageUrl: "",
         promotionType: "NONE",
@@ -394,8 +376,7 @@ export default function ProductModal({
       const basePayload = {
         name: data.name,
         description: data.description,
-        categoryId: data.categoryId,
-        brandId: data.brandId || undefined,
+        subCategoryId: data.subCategoryId,
         mainImageUrl: finalMainImageUrl,
         images: validImages.length > 0 ? validImages : undefined,
         sizes: cleanedSizes.length > 0 ? cleanedSizes : undefined,
@@ -448,8 +429,7 @@ export default function ProductModal({
     reset();
     setIsUploadingImage(false);
     setIsProcessingImages(false);
-    setSelectedBrand(null);
-    setSelectedCategory(null);
+    setSelectedSubCategory(null);
     dispatch(clearError());
     dispatch(clearSelectedProduct());
     onClose();
@@ -524,34 +504,19 @@ export default function ProductModal({
                       error={errors.name}
                     />
 
-                    <ComboboxSelectCategories
-                      dataSelect={selectedCategory}
+                    <ComboboxSelectSubCategories
+                      dataSelect={selectedSubCategory}
                       onChangeSelected={(category) => {
-                        setSelectedCategory(category);
-                        setValue("categoryId", category?.id || "", {
+                        setSelectedSubCategory(category);
+                        setValue("subCategoryId", category?.id || "", {
                           shouldDirty: true,
                         });
                       }}
-                      label="Category"
+                      label="Sub-Category"
                       placeholder="Select category"
                       required
                       disabled={isProcessing}
-                      error={errors.categoryId?.message}
-                      showAllOption={false}
-                    />
-
-                    <ComboboxSelectBrand
-                      dataSelect={selectedBrand}
-                      onChangeSelected={(brand) => {
-                        setSelectedBrand(brand);
-                        setValue("brandId", brand?.id || "", {
-                          shouldDirty: true,
-                        });
-                      }}
-                      label="Brand (Optional)"
-                      placeholder="Select brand"
-                      disabled={isProcessing}
-                      error={errors.brandId?.message}
+                      error={errors.subCategoryId?.message}
                       showAllOption={false}
                     />
 
