@@ -215,7 +215,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
           )}
 
           {/* Favorite button */}
-          <div className="absolute top-2 right-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+          <div className="absolute top-2 right-2 z-20">
             <CustomButton
               size="icon"
               variant="secondary"
