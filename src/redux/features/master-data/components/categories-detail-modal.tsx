@@ -32,7 +32,7 @@ export function CategoriesDetailModal({
   const categoriesData = useAppSelector(selectSelectedCategories);
 
   useEffect(() => {
-    const fetchBrandData = async () => {
+    const fetchCategoryData = async () => {
       if (!categoriesId || !isOpen) return;
 
       try {
@@ -42,7 +42,7 @@ export function CategoriesDetailModal({
       }
     };
 
-    fetchBrandData();
+    fetchCategoryData();
   }, [categoriesId, isOpen, dispatch]);
 
   const handleClose = () => {
@@ -55,12 +55,12 @@ export function CategoriesDetailModal({
       isOpen={isOpen}
       onClose={handleClose}
       isLoading={isFetchingDetail}
-      title={"Categoires information Details"}
+      title={"Categories information Details"}
       description={categoriesData?.name || "Loading categories information..."}
     >
       {categoriesData ? (
         <div className="space-y-6">
-          {/* Brand Information */}
+          {/* Categories Information */}
           <DetailSection title="Personal Information">
             <CustomAvatar
               imageUrl={categoriesData.imageUrl}
@@ -68,7 +68,7 @@ export function CategoriesDetailModal({
               size="xl"
             />
             <DetailRow
-              label="Brand Name"
+              label="Categories Name"
               value={categoriesData?.name || "---"}
             />
 
@@ -94,10 +94,6 @@ export function CategoriesDetailModal({
                   {categoriesData?.id}
                 </span>
               }
-            />
-            <DetailRow
-              label="Business Name"
-              value={categoriesData?.businessName || "---"}
             />
             <DetailRow
               label="Created At"

@@ -60,7 +60,7 @@ export const categoriesTableColumns = ({
 
     {
       key: "name",
-      label: "Brand Name",
+      label: "Categories Name",
       minWidth: "10px",
       maxWidth: "400px",
       truncate: true,

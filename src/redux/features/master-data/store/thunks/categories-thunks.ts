@@ -20,8 +20,8 @@ export const fetchAllCategoriesService = createApiThunk<
   AllCategoriesRequest
 >("categories/fetchAll", async (params) => {
   const response = await axiosClientWithAuth.post(
-    "/api/v1/categories/my-business/all",
-    params
+    "/api/v1/categories/all",
+    params,
   );
   return response.data.data;
 });
@@ -33,10 +33,10 @@ export const fetchCategoriesByIdService = createApiThunk<any, string>(
   "categories/fetchById",
   async (categoriesId) => {
     const response = await axiosClientWithAuth.get(
-      `/api/v1/categories/${categoriesId}`
+      `/api/v1/categories/${categoriesId}`,
     );
     return response.data.data;
-  }
+  },
 );
 
 /**
@@ -48,7 +48,7 @@ export const createCategoriesService = createApiThunk<
 >("categories/create", async (categoriesData) => {
   const response = await axiosClientWithAuth.post(
     "/api/v1/categories",
-    categoriesData
+    categoriesData,
   );
   return response.data.data;
 });
@@ -62,7 +62,7 @@ export const updateCategoriesService = createApiThunk<
 >("categories/update", async ({ categoriesId, categoriesData }) => {
   const response = await axiosClientWithAuth.put(
     `/api/v1/categories/${categoriesId}`,
-    categoriesData
+    categoriesData,
   );
   return response.data.data;
 });
@@ -74,8 +74,8 @@ export const deleteCategoriesService = createApiThunk<any, string>(
   "categories/delete",
   async (categoriesId) => {
     const response = await axiosClientWithAuth.delete(
-      `/api/v1/categories/${categoriesId}`
+      `/api/v1/categories/${categoriesId}`,
     );
     return response.data.data;
-  }
+  },
 );
