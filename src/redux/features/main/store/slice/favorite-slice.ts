@@ -1,13 +1,4 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import {
-  fetchWishlist,
-  addToWishlist,
-  removeFromWishlist,
-} from "../thunks/wishlist-thunks";
-import {
-  WishlistResponseModel,
-  WishlistItemResponseModel,
-} from "../models/response/wishlist-response";
 
 interface WishlistState {
   items: WishlistItemResponseModel[];
@@ -46,7 +37,7 @@ const wishlistSlice = createSlice({
     toggleWishlistOptimistic: (state, action: PayloadAction<string>) => {
       const productId = action.payload;
       const index = state.items.findIndex(
-        (item) => item.productId === productId
+        (item) => item.productId === productId,
       );
       if (index >= 0) {
         state.items.splice(index, 1);
@@ -69,7 +60,7 @@ const wishlistSlice = createSlice({
           state.totalItems = action.payload.totalItems || 0;
           state.loaded = true;
           state.error = null;
-        }
+        },
       )
       .addCase(fetchWishlist.rejected, (state, action) => {
         state.loading.fetch = false;
@@ -99,7 +90,7 @@ const wishlistSlice = createSlice({
         state.loading.remove = false;
         const productId = action.meta.arg.productId;
         state.items = state.items.filter(
-          (item) => item.productId !== productId
+          (item) => item.productId !== productId,
         );
         state.totalItems = state.items.length;
         state.error = null;

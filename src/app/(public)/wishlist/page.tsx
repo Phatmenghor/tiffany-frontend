@@ -6,7 +6,10 @@ import { Heart, ShoppingCart, Trash2, ArrowLeft } from "lucide-react";
 import { useWishlistState } from "@/redux/features/main/store/state/wishlist-state";
 import { useCartState } from "@/redux/features/main/store/state/cart-state";
 import { useAuthState } from "@/redux/features/auth/store/state/auth-state";
-import { fetchWishlist, removeFromWishlist } from "@/redux/features/main/store/thunks/wishlist-thunks";
+import {
+  fetchWishlist,
+  removeFromWishlist,
+} from "@/redux/features/main/store/thunks/favorite-thunks";
 import { addToCart } from "@/redux/features/main/store/thunks/cart-thunks";
 import { ProductCard } from "@/components/shared/card/product-card";
 import { ProductCardSkeleton } from "@/components/shared/skeletons/product-card-skeleton";
@@ -74,9 +77,14 @@ export default function WishlistPage() {
           </div>
           <h1 className="text-3xl font-bold mb-4">Your Wishlist is Empty</h1>
           <p className="text-muted-foreground mb-8">
-            Save your favorite items here to buy them later or share with friends
+            Save your favorite items here to buy them later or share with
+            friends
           </p>
-          <CustomButton onClick={() => router.push("/products")} size="lg" className="gap-2">
+          <CustomButton
+            onClick={() => router.push("/products")}
+            size="lg"
+            className="gap-2"
+          >
             <ShoppingCart className="h-5 w-5" />
             Start Shopping
           </CustomButton>
