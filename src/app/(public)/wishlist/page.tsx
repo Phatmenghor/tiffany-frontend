@@ -6,6 +6,7 @@ import { Heart, ShoppingCart, Trash2, ArrowLeft } from "lucide-react";
 import { useWishlistState } from "@/redux/features/main/store/state/wishlist-state";
 import { useCartState } from "@/redux/features/main/store/state/cart-state";
 import { useAuthState } from "@/redux/features/auth/store/state/auth-state";
+import { isAuthenticated as checkTokenExists } from "@/utils/local-storage/token";
 import {
   fetchFavoriteList,
   toggleFavorite,
@@ -23,17 +24,21 @@ export default function WishlistPage() {
   const { dispatch, items, totalItems, loading, loaded } = useWishlistState();
   const { dispatch: cartDispatch } = useCartState();
 
+  // Check cookie token as fallback (Redux may not be hydrated yet on refresh)
+  const hasToken = checkTokenExists();
+
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated && !hasToken) {
       router.push("/");
       showToast.error("Please login to view your wishlist");
       return;
     }
 
-    if (!loaded && !loading.fetch) {
+    // Always re-fetch fresh data when visiting wishlist page
+    if ((isAuthenticated || hasToken) && !loading.fetch) {
       dispatch(fetchFavoriteList());
     }
-  }, [isAuthenticated, loaded, loading.fetch, dispatch, router]);
+  }, [isAuthenticated, hasToken, dispatch, router]);
 
   // Service 3: Remove one favorite
   const handleRemoveOne = async (productId: string) => {

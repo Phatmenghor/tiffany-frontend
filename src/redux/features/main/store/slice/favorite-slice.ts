@@ -59,29 +59,31 @@ const favoriteSlice = createSlice({
         state.error = (action.payload as string) || "Failed to fetch favorites";
       })
 
-      // Service 2: Toggle Favorite (dynamic - auto add/remove)
-      .addCase(toggleFavorite.pending, (state) => {
-        state.loading.toggle = true;
-        state.error = null;
-      })
-      .addCase(toggleFavorite.fulfilled, (state, action) => {
-        state.loading.toggle = false;
+      // Service 2: Toggle Favorite (optimistic - update UI first, API in background)
+      .addCase(toggleFavorite.pending, (state, action) => {
         const productId = action.meta.arg.productId;
         const existingIndex = state.items.findIndex(
           (item) => item.id === productId,
         );
         if (existingIndex >= 0) {
-          // Was in favorites → now removed
           state.items.splice(existingIndex, 1);
           state.totalItems = Math.max(0, state.totalItems - 1);
         } else {
-          // Was not in favorites → now added (count +1, full item loads on next fetch)
           state.totalItems += 1;
         }
+      })
+      .addCase(toggleFavorite.fulfilled, (state) => {
         state.error = null;
       })
       .addCase(toggleFavorite.rejected, (state, action) => {
-        state.loading.toggle = false;
+        // Rollback count on failure
+        const productId = action.meta.arg.productId;
+        const stillExists = state.items.some((item) => item.id === productId);
+        if (stillExists) {
+          state.totalItems = Math.max(0, state.totalItems - 1);
+        } else {
+          state.totalItems += 1;
+        }
         state.error =
           (action.payload as string) || "Failed to toggle favorite";
       })

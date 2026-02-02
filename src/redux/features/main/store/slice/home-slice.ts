@@ -216,8 +216,19 @@ const homeSlice = createSlice({
         state.sections.featuredProducts.error = action.payload as string;
       });
 
-    // Cross-slice: Toggle favorite → flip isFavorited on matching products
-    builder.addCase(toggleFavorite.fulfilled, (state, action) => {
+    // Cross-slice: Toggle favorite (optimistic - flip immediately on pending)
+    builder.addCase(toggleFavorite.pending, (state, action) => {
+      const productId = action.meta.arg.productId;
+      state.promotionProducts.forEach((p) => {
+        if (p.id === productId) p.isFavorited = !p.isFavorited;
+      });
+      state.featuredProducts.forEach((p) => {
+        if (p.id === productId) p.isFavorited = !p.isFavorited;
+      });
+    });
+
+    // Rollback on failure
+    builder.addCase(toggleFavorite.rejected, (state, action) => {
       const productId = action.meta.arg.productId;
       state.promotionProducts.forEach((p) => {
         if (p.id === productId) p.isFavorited = !p.isFavorited;

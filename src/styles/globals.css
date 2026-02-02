@@ -429,3 +429,21 @@ body.route-changing #nprogress .peg {
     max-width: 300px;
   }
 }
+
+/* React-Toastify: Success toast uses primary color */
+.Toastify__toast--success {
+  background: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+.Toastify__toast--success .Toastify__progress-bar {
+  background: hsl(var(--primary-foreground) / 0.4) !important;
+}
+
+.Toastify__toast--success .Toastify__close-button {
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+.Toastify__toast--success .Toastify__toast-icon svg {
+  fill: hsl(var(--primary-foreground)) !important;
+}
