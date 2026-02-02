@@ -107,7 +107,7 @@ export function ProductDetailModal({
               value={formatCurrency(productData.price)}
             />
 
-            {productData.hasPromotion && (
+            {productData.hasActivePromotion && (
               <>
                 <DetailRow
                   label="Promotion Type"
@@ -153,7 +153,7 @@ export function ProductDetailModal({
               </>
             )}
 
-            {!productData.hasPromotion && (
+            {!productData.hasActivePromotion && (
               <DetailRow
                 label="Display Price"
                 value={formatCurrency(productData.displayPrice)}
