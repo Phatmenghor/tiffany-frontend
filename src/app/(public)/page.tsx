@@ -56,7 +56,7 @@ export default function HomePage() {
       }
 
       if (!categoriesSection.loaded) {
-        promises.push(dispatch(fetchHomeCategories({ pageSize: 12 })));
+        promises.push(dispatch(fetchHomeCategories({})));
       }
 
       if (!promotionProductsSection.loaded) {
@@ -84,9 +84,7 @@ export default function HomePage() {
     featuredProductsSection.loaded,
   ]);
 
-  // Load more featured products - stable callback to prevent observer re-initialization
   const handleLoadMoreFeatured = useCallback(() => {
-    // Check conditions inside the callback to avoid unnecessary re-renders
     if (
       featuredPagination.hasMore &&
       !featuredProductsSection.loading &&

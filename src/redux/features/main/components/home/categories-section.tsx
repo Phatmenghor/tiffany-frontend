@@ -20,37 +20,16 @@ export const CategoriesSection = ({
   error,
   title = "Shop by Category",
 }: CategoriesSectionProps) => {
-  const [limit, setLimit] = useState(12);
-
-  useEffect(() => {
-    const updateLimit = () => {
-      const width = window.innerWidth;
-
-      // Show only 2 rows for better UI/UX
-      if (width < 640) setLimit(4); // 2 columns × 2 rows
-      else if (width < 768) setLimit(6); // 3 columns × 2 rows
-      else if (width < 1024) setLimit(8); // 4 columns × 2 rows
-      else if (width < 1280) setLimit(10); // 5 columns × 2 rows
-      else setLimit(12); // 6 columns × 2 rows
-    };
-
-    updateLimit();
-    window.addEventListener("resize", updateLimit);
-    return () => window.removeEventListener("resize", updateLimit);
-  }, []);
-
-  const displayCategories = categories?.slice(0, limit) || [];
-
   if (loading) {
     return (
       <SectionWrapper>
         <SectionHeader title={title} subtitle="Browse products by category" />
-        <CategoryGridSkeleton count={limit} />
+        <CategoryGridSkeleton count={12} />
       </SectionWrapper>
     );
   }
 
-  if (error || !displayCategories || displayCategories.length === 0) {
+  if (error || !categories || categories?.length === 0) {
     return null;
   }
 
@@ -59,7 +38,7 @@ export const CategoriesSection = ({
       <SectionHeader title={title} subtitle="Browse products by category" />
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-        {displayCategories.map((category) => (
+        {categories?.map((category) => (
           <CategoryCard key={category.id} category={category} />
         ))}
       </div>

@@ -1,13 +1,7 @@
-/**
- * home-slice.ts
- * Simplified - only store scroll for home page
- */
-
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { BannerResponseModel } from "@/redux/features/master-data/store/models/response/banner-response";
 import { CategoriesResponseModel } from "@/redux/features/master-data/store/models/response/categories-response";
 import { ProductDetailResponseModel } from "@/redux/features/business/store/models/response/product-response";
-import { BrandResponseModel } from "@/redux/features/master-data/store/models/response/brand-response";
 
 import {
   fetchHomeBanners,
@@ -35,7 +29,6 @@ interface HomePageState {
   categories: CategoriesResponseModel[];
   promotionProducts: ProductDetailResponseModel[];
   featuredProducts: ProductDetailResponseModel[];
-  brands: BrandResponseModel[];
 
   // Section states
   sections: {
@@ -68,7 +61,6 @@ const initialState: HomePageState = {
   categories: [],
   promotionProducts: [],
   featuredProducts: [],
-  brands: [],
   sections: {
     banners: { ...initialSectionState },
     categories: { ...initialSectionState },
@@ -115,7 +107,6 @@ const homeSlice = createSlice({
       state.categories = [];
       state.promotionProducts = [];
       state.featuredProducts = [];
-      state.brands = [];
       state.sections = {
         banners: { ...initialSectionState },
         categories: { ...initialSectionState },
@@ -160,7 +151,7 @@ const homeSlice = createSlice({
         state.sections.categories.error = null;
       })
       .addCase(fetchHomeCategories.fulfilled, (state, action) => {
-        state.categories = action.payload.content || [];
+        state.categories = action.payload || [];
         state.sections.categories.loading = false;
         state.sections.categories.loaded = true;
       })
@@ -219,22 +210,6 @@ const homeSlice = createSlice({
       .addCase(fetchHomeFeaturedProducts.rejected, (state, action) => {
         state.sections.featuredProducts.loading = false;
         state.sections.featuredProducts.error = action.payload as string;
-      });
-
-    // Brands
-    builder
-      .addCase(fetchHomeBrands.pending, (state) => {
-        state.sections.brands.loading = true;
-        state.sections.brands.error = null;
-      })
-      .addCase(fetchHomeBrands.fulfilled, (state, action) => {
-        state.brands = action.payload.content || [];
-        state.sections.brands.loading = false;
-        state.sections.brands.loaded = true;
-      })
-      .addCase(fetchHomeBrands.rejected, (state, action) => {
-        state.sections.brands.loading = false;
-        state.sections.brands.error = action.payload as string;
       });
   },
 });

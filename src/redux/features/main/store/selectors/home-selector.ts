@@ -14,7 +14,6 @@ export const selectHomePromotionProducts = (state: RootState) =>
   state.home.promotionProducts;
 export const selectHomeFeaturedProducts = (state: RootState) =>
   state.home.featuredProducts;
-export const selectHomeBrands = (state: RootState) => state.home.brands;
 
 // Sections
 export const selectSections = (state: RootState) => state.home.sections;
@@ -26,8 +25,6 @@ export const selectPromotionProductsSection = (state: RootState) =>
   state.home.sections.promotionProducts;
 export const selectFeaturedProductsSection = (state: RootState) =>
   state.home.sections.featuredProducts;
-export const selectBrandsSection = (state: RootState) =>
-  state.home.sections.brands;
 
 // Pagination
 export const selectFeaturedPagination = (state: RootState) =>
@@ -44,5 +41,5 @@ export const selectAllSectionsLoaded = createSelector(
     sections.categories.loaded &&
     sections.promotionProducts.loaded &&
     sections.featuredProducts.loaded &&
-    sections.brands.loaded
+    sections.brands.loaded,
 );

@@ -46,11 +46,6 @@ export function ProductCard({ product, className }: ProductCardProps) {
   const cartItem = cartItems.find((item) => item.productId === product.id);
   const quantity = cartItem?.quantity || product.quantityInCart || 0;
 
-  // Get favorite status from product or wishlist
-  const isFavorited =
-    product.isFavorited ||
-    wishlistItems.some((item) => item.productId === product.id);
-
   // Image URL (fallback automatically handled)
   const imageUrl = product.mainImageUrl || appImages.NoImage;
 
@@ -150,7 +145,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
     setIsTogglingFavorite(true);
     try {
-      if (isFavorited) {
+      if (product?.isFavorited) {
         await wishlistDispatch(
           removeFromWishlist({ productId: product.id }),
         ).unwrap();
@@ -202,16 +197,18 @@ export function ProductCard({ product, className }: ProductCardProps) {
           />
 
           {/* Top badges */}
-          <div className="absolute top-2 left-2 right-2 flex justify-between items-start z-10 pointer-events-none gap-2">
-            <Badge
-              variant="destructive"
-              className="text-xs font-bold px-2 py-0.5 shadow-md pointer-events-auto"
-            >
-              {product.displayPromotionType === "PERCENTAGE"
-                ? `-${product.displayPromotionValue}%`
-                : `-${formatCurrency(product.displayPromotionValue)}`}
-            </Badge>
-          </div>
+          {product?.hasActivePromotion && (
+            <div className="absolute top-2 left-2 right-2 flex justify-between items-start z-10 pointer-events-none gap-2">
+              <Badge
+                variant="destructive"
+                className="text-xs font-bold px-2 py-0.5 shadow-md pointer-events-auto"
+              >
+                {product.displayPromotionType === "PERCENTAGE"
+                  ? `-${product.displayPromotionValue}%`
+                  : `-${formatCurrency(product.displayPromotionValue)}`}
+              </Badge>
+            </div>
+          )}
 
           {isOutOfStock && (
             <div className="absolute inset-0 bg-black/50 z-10 flex items-center justify-center pointer-events-none">
@@ -231,14 +228,19 @@ export function ProductCard({ product, className }: ProductCardProps) {
               variant="secondary"
               className={cn(
                 "h-8 w-8 rounded-full shadow-md",
-                isFavorited
+                product?.isFavorited
                   ? "bg-red-500 text-white hover:bg-red-600"
                   : "bg-white hover:bg-red-50 hover:text-red-500",
               )}
               onClick={handleToggleFavorite}
               disabled={isTogglingFavorite}
             >
-              <Heart className={cn("h-4 w-4", isFavorited && "fill-current")} />
+              <Heart
+                className={cn(
+                  "h-4 w-4",
+                  product?.isFavorited && "fill-current",
+                )}
+              />
             </CustomButton>
           </div>
         </div>
