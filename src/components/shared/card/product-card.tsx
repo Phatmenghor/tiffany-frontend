@@ -17,10 +17,7 @@ import {
   updateCartItem,
   removeFromCart,
 } from "@/redux/features/main/store/thunks/cart-thunks";
-import {
-  addToWishlist,
-  removeFromWishlist,
-} from "@/redux/features/main/store/thunks/favorite-thunks";
+import { toggleFavorite } from "@/redux/features/main/store/thunks/favorite-thunks";
 import { showToast } from "../common/show-toast";
 import { useAuthState } from "@/redux/features/auth/store/state/auth-state";
 import { appImages } from "@/constants/app-resource/icons/app-images";
@@ -133,7 +130,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
     }
   };
 
-  // Wishlist handler
+  // Wishlist handler - toggle only (auto add/remove)
   const handleToggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -145,17 +142,13 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
     setIsTogglingFavorite(true);
     try {
-      if (product?.isFavorited) {
-        await wishlistDispatch(
-          removeFromWishlist({ productId: product.id }),
-        ).unwrap();
-        showToast.success("Removed from wishlist");
-      } else {
-        await wishlistDispatch(
-          addToWishlist({ productId: product.id }),
-        ).unwrap();
-        showToast.success("Added to wishlist");
-      }
+      const wasFavorited = product?.isFavorited;
+      await wishlistDispatch(
+        toggleFavorite({ productId: product.id }),
+      ).unwrap();
+      showToast.success(
+        wasFavorited ? "Removed from wishlist" : "Added to wishlist",
+      );
     } catch (error: any) {
       showToast.error(error?.message || "Failed to update wishlist");
     } finally {

@@ -10,6 +10,10 @@ import {
   fetchHomeFeaturedProducts,
   fetchHomeBrands,
 } from "../thunks/home-thunks";
+import {
+  toggleFavorite,
+  clearAllFavorites,
+} from "../thunks/favorite-thunks";
 
 interface SectionState {
   loading: boolean;
@@ -211,6 +215,27 @@ const homeSlice = createSlice({
         state.sections.featuredProducts.loading = false;
         state.sections.featuredProducts.error = action.payload as string;
       });
+
+    // Cross-slice: Toggle favorite → flip isFavorited on matching products
+    builder.addCase(toggleFavorite.fulfilled, (state, action) => {
+      const productId = action.meta.arg.productId;
+      state.promotionProducts.forEach((p) => {
+        if (p.id === productId) p.isFavorited = !p.isFavorited;
+      });
+      state.featuredProducts.forEach((p) => {
+        if (p.id === productId) p.isFavorited = !p.isFavorited;
+      });
+    });
+
+    // Cross-slice: Clear all favorites → set all isFavorited to false
+    builder.addCase(clearAllFavorites.fulfilled, (state) => {
+      state.promotionProducts.forEach((p) => {
+        p.isFavorited = false;
+      });
+      state.featuredProducts.forEach((p) => {
+        p.isFavorited = false;
+      });
+    });
   },
 });
 

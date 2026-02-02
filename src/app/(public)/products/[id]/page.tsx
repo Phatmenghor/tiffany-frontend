@@ -9,6 +9,9 @@ import {
 } from "@/redux/features/main/store/thunks/public-product-thunks";
 import { clearSelectedProduct } from "@/redux/features/main/store/slice/public-product-slice";
 import { usePublicProductState } from "@/redux/features/main/store/state/public-product-state";
+import { useAuthState } from "@/redux/features/auth/store/state/auth-state";
+import { useWishlistState } from "@/redux/features/main/store/state/wishlist-state";
+import { toggleFavorite } from "@/redux/features/main/store/thunks/favorite-thunks";
 import { ProductCard } from "@/components/shared/card/product-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +32,7 @@ import { ProductDetailResponseModel } from "@/redux/features/business/store/mode
 import { CustomButton } from "@/components/shared/button/custom-button";
 import { cn } from "@/lib/utils";
 import { useScrollToTop } from "@/hooks/use-scroll-restoration";
+import { showToast } from "@/components/shared/common/show-toast";
 
 interface ProductSize {
   id: string;
@@ -48,10 +52,14 @@ export default function ProductDetailPage() {
   const router = useRouter();
 
   const { dispatch, selectedProduct, loading } = usePublicProductState();
+  const { isAuthenticated } = useAuthState();
+  const { dispatch: wishlistDispatch } = useWishlistState();
 
   const productId = params.id as string;
   const product = selectedProduct;
   const isLoading = loading.detail;
+
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
 
   // Scroll to top on mount (detail page should always start at top)
   useScrollToTop();
@@ -170,6 +178,30 @@ export default function ProductDetailPage() {
   const hasDiscount = selectedSize
     ? selectedSize.hasPromotion
     : product?.hasPromotion;
+
+  // Toggle favorite handler
+  const handleToggleFavorite = async () => {
+    if (!isAuthenticated) {
+      showToast.error("Please login to add to wishlist");
+      return;
+    }
+    if (!product) return;
+
+    setIsTogglingFavorite(true);
+    try {
+      const wasFavorited = product.isFavorited;
+      await wishlistDispatch(
+        toggleFavorite({ productId: product.id }),
+      ).unwrap();
+      showToast.success(
+        wasFavorited ? "Removed from wishlist" : "Added to wishlist",
+      );
+    } catch (error: any) {
+      showToast.error(error?.message || "Failed to update wishlist");
+    } finally {
+      setIsTogglingFavorite(false);
+    }
+  };
 
   if (isLoading) {
     return <ProductDetailSkeleton />;
@@ -423,9 +455,24 @@ export default function ProductDetailPage() {
               </CustomButton>
 
               <div className="grid grid-cols-2 gap-3">
-                <CustomButton size="lg" variant="outline" className="h-12">
-                  <Heart className="h-5 w-5 mr-2" />
-                  Wishlist
+                <CustomButton
+                  size="lg"
+                  variant="outline"
+                  className={cn(
+                    "h-12",
+                    product.isFavorited &&
+                      "bg-red-50 border-red-200 text-red-600 hover:bg-red-100",
+                  )}
+                  onClick={handleToggleFavorite}
+                  disabled={isTogglingFavorite}
+                >
+                  <Heart
+                    className={cn(
+                      "h-5 w-5 mr-2",
+                      product.isFavorited && "fill-current",
+                    )}
+                  />
+                  {product.isFavorited ? "Wishlisted" : "Wishlist"}
                 </CustomButton>
                 <CustomButton size="lg" variant="outline" className="h-12">
                   <Share2 className="h-5 w-5 mr-2" />

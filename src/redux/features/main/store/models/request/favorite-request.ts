@@ -1,7 +1,3 @@
-export interface toggleFavoriteRequest {
+export interface ToggleFavoriteRequest {
   productId: string;
-}
-
-export interface RemoveFromFavoriteRequest {
-  favoriteId: string;
 }

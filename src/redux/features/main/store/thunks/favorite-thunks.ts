@@ -1,32 +1,34 @@
 import { axiosClientWithAuth } from "@/utils/axios";
 import { createApiThunk } from "@/utils/axios/api-wrapper";
-import { toggleFavoriteRequest } from "../models/request/favorite-request";
-import { AllProductRequest } from "@/redux/features/business/store/models/request/product-request";
+import { ToggleFavoriteRequest } from "../models/request/favorite-request";
+import { AllFavoriteResponseModel } from "../models/response/favorite-response";
 
-export const fetchFavoriteList = createApiThunk<any, AllProductRequest>(
+// Service 1: Fetch all favorites list
+export const fetchFavoriteList = createApiThunk<AllFavoriteResponseModel, void>(
   "product-favorites/fetchFavoriteList",
-  async (request) => {
+  async () => {
     const response = await axiosClientWithAuth.post(
       "/api/v1/product-favorites/my-favorites",
-      request,
+      { pageNo: 1, pageSize: 200 },
     );
     return response.data.data;
   },
 );
 
-export const toggleFavoriteList = createApiThunk<void, toggleFavoriteRequest>(
+// Service 2: Toggle favorite (auto add if not exist, remove if exist - dynamic)
+export const toggleFavorite = createApiThunk<void, ToggleFavoriteRequest>(
   "product-favorites/toggleFavorite",
   async (data) => {
     await axiosClientWithAuth.post(
       `/api/v1/product-favorites/${data.productId}/toggle`,
-      data,
     );
   },
 );
 
-export const removeAllFromFavorite = createApiThunk<void, void>(
-  "product-favorites/removeAllFromFavorite",
+// Service 3: Clear all favorites
+export const clearAllFavorites = createApiThunk<void, void>(
+  "product-favorites/clearAllFavorites",
   async () => {
-    await axiosClientWithAuth.delete(`/api/v1/product-favorites/all`);
+    await axiosClientWithAuth.delete("/api/v1/product-favorites/all");
   },
 );

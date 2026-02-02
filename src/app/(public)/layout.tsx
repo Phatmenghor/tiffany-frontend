@@ -7,7 +7,7 @@ import { useAuthState } from "@/redux/features/auth/store/state/auth-state";
 import { useCartState } from "@/redux/features/main/store/state/cart-state";
 import { useWishlistState } from "@/redux/features/main/store/state/wishlist-state";
 import { fetchCart } from "@/redux/features/main/store/thunks/cart-thunks";
-import { fetchWishlist } from "@/redux/features/main/store/thunks/favorite-thunks";
+import { fetchFavoriteList } from "@/redux/features/main/store/thunks/favorite-thunks";
 
 export default function PublicLayout({
   children,
@@ -33,7 +33,7 @@ export default function PublicLayout({
         cartDispatch(fetchCart());
       }
       if (!wishlistLoaded && !wishlistLoading.fetch) {
-        wishlistDispatch(fetchWishlist());
+        wishlistDispatch(fetchFavoriteList());
       }
     }
   }, [

@@ -6,6 +6,10 @@ import {
   fetchPublicCategories,
   fetchPublicBrands,
 } from "../thunks/public-product-thunks";
+import {
+  toggleFavorite,
+  clearAllFavorites,
+} from "../thunks/favorite-thunks";
 
 interface PublicProductState {
   products: ProductDetailResponseModel[];
@@ -160,6 +164,27 @@ const publicProductSlice = createSlice({
       .addCase(fetchPublicBrands.rejected, (state) => {
         state.loading.filters = false;
       });
+
+    // Cross-slice: Toggle favorite → flip isFavorited on matching products
+    builder.addCase(toggleFavorite.fulfilled, (state, action) => {
+      const productId = action.meta.arg.productId;
+      state.products.forEach((p) => {
+        if (p.id === productId) p.isFavorited = !p.isFavorited;
+      });
+      if (state.selectedProduct?.id === productId) {
+        state.selectedProduct.isFavorited = !state.selectedProduct.isFavorited;
+      }
+    });
+
+    // Cross-slice: Clear all favorites → set all isFavorited to false
+    builder.addCase(clearAllFavorites.fulfilled, (state) => {
+      state.products.forEach((p) => {
+        p.isFavorited = false;
+      });
+      if (state.selectedProduct) {
+        state.selectedProduct.isFavorited = false;
+      }
+    });
   },
 });
 

@@ -17,7 +17,7 @@ import publicBrandsReducer from "../features/main/store/slice/public-brands-slic
 import publicCategoriesReducer from "../features/main/store/slice/public-categories-slice";
 import scrollReducer from "../features/main/store/slice/scroll-slice";
 import cartReducer from "../features/main/store/slice/cart-slice";
-import wishlistReducer from "../features/main/store/slice/wishlist-slice";
+import wishlistReducer from "../features/main/store/slice/favorite-slice";
 import globalSettingsReducer from "./slices/global-settings-slice";
 
 import aboutUsReducer from "../features/setting/store/slice/about-us-slice";
