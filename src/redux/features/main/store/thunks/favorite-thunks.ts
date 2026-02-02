@@ -1,16 +1,14 @@
 import { axiosClientWithAuth } from "@/utils/axios";
 import { createApiThunk } from "@/utils/axios/api-wrapper";
-import { WishlistResponseModel } from "../models/response/wishlist-response";
-import {
-  RemoveFromFavoriteRequest,
-  toggleFavoriteRequest,
-} from "../models/request/wishlist-request";
+import { toggleFavoriteRequest } from "../models/request/favorite-request";
+import { AllProductRequest } from "@/redux/features/business/store/models/request/product-request";
 
-export const fetchFavoriteList = createApiThunk<WishlistResponseModel, void>(
+export const fetchFavoriteList = createApiThunk<any, AllProductRequest>(
   "product-favorites/fetchFavoriteList",
-  async () => {
+  async (request) => {
     const response = await axiosClientWithAuth.post(
       "/api/v1/product-favorites/my-favorites",
+      request,
     );
     return response.data.data;
   },
@@ -25,15 +23,6 @@ export const toggleFavoriteList = createApiThunk<void, toggleFavoriteRequest>(
     );
   },
 );
-
-export const removeFromFavorite = createApiThunk<
-  void,
-  RemoveFromFavoriteRequest
->("product-favorites/removeFromFavorite", async (data) => {
-  await axiosClientWithAuth.delete(
-    `/api/v1/product-favorites/${data.favoriteId}`,
-  );
-});
 
 export const removeAllFromFavorite = createApiThunk<void, void>(
   "product-favorites/removeAllFromFavorite",
