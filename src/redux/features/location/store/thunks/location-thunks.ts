@@ -1,70 +1,58 @@
 import { axiosClientWithAuth } from "@/utils/axios";
 import { createApiThunk } from "@/utils/axios/api-wrapper";
+import {
+  CreateLocationRequest,
+  UpdateLocationParams,
+} from "../models/request/location-request";
+import { LocationResponseModel } from "../models/response/location-response";
 
 /**
- * Fetch all Location
+ * Fetch all user locations
  */
-export const fetchAllProductService = createApiThunk<any, AllProductRequest>(
-  "user-locations/fetchAll",
-  async (params) => {
-    const response = await axiosClientWithAuth.get(
-      "/api/v1/user-locations",
-      params,
-    );
-    return response.data.data;
-  },
-);
+export const fetchAllLocationsService = createApiThunk<
+  LocationResponseModel[]
+>("user-locations/fetchAll", async () => {
+  const response = await axiosClientWithAuth.get("/api/v1/user-locations");
+  return response.data.data;
+});
 
 /**
- * Fetch Product by ID
+ * Create a new location
  */
-export const fetchProductByIdService = createApiThunk<any, string>(
-  "products/fetchById",
-  async (productId) => {
-    const response = await axiosClientWithAuth.get(
-      `/api/v1/products/${productId}`,
-    );
-    return response.data.data;
-  },
-);
+export const createLocationService = createApiThunk<
+  LocationResponseModel,
+  CreateLocationRequest
+>("user-locations/create", async (locationData) => {
+  const response = await axiosClientWithAuth.post(
+    "/api/v1/user-locations",
+    locationData,
+  );
+  return response.data.data;
+});
 
 /**
- * Create Product
+ * Update an existing location
  */
-export const createProductService = createApiThunk<any, CreateProductData>(
-  "products/create",
-  async (productData) => {
-    const response = await axiosClientWithAuth.post(
-      "/api/v1/products",
-      productData,
-    );
-    return response.data.data;
-  },
-);
+export const updateLocationService = createApiThunk<
+  LocationResponseModel,
+  UpdateLocationParams
+>("user-locations/update", async ({ locationId, locationData }) => {
+  const response = await axiosClientWithAuth.put(
+    `/api/v1/user-locations/${locationId}`,
+    locationData,
+  );
+  return response.data.data;
+});
 
 /**
- * Update Product
+ * Delete a location
  */
-export const updateProductService = createApiThunk<any, UpdateProductParams>(
-  "products/update",
-  async ({ productId, productData }) => {
-    const response = await axiosClientWithAuth.put(
-      `/api/v1/products/${productId}`,
-      productData,
-    );
-    return response.data.data;
-  },
-);
-
-/**
- * Delete Product
- */
-export const deleteProductService = createApiThunk<any, string>(
-  "products/delete",
-  async (bannerId) => {
-    const response = await axiosClientWithAuth.delete(
-      `/api/v1/products/${bannerId}`,
-    );
-    return response.data.data;
-  },
-);
+export const deleteLocationService = createApiThunk<
+  LocationResponseModel,
+  string
+>("user-locations/delete", async (locationId) => {
+  const response = await axiosClientWithAuth.delete(
+    `/api/v1/user-locations/${locationId}`,
+  );
+  return response.data.data;
+});

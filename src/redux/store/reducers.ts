@@ -21,6 +21,7 @@ import favoritesReducer from "../features/main/store/slice/favorite-slice";
 import globalSettingsReducer from "./slices/global-settings-slice";
 
 import aboutUsReducer from "../features/setting/store/slice/about-us-slice";
+import locationReducer from "../features/location/store/slice/location-slice";
 
 /**
  * Root reducer configuration
@@ -44,6 +45,9 @@ export const reducers = {
 
   // Setting
   aboutUs: aboutUsReducer,
+
+  // Location
+  locations: locationReducer,
 
   // Main/Public
   home: homeReducer,

@@ -1,36 +1,24 @@
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
-  selectError,
-  selectFilters,
-  selectIsLoading,
-  selectOperations,
-  selectPagination,
-  selectProduct,
-  selectProductContent,
-  selectProductState,
+  selectLocations,
+  selectLocationIsLoading,
+  selectLocationError,
+  selectLocationOperations,
 } from "../selectors/location-selector";
 
-export const useProductState = () => {
+export const useLocationState = () => {
   const dispatch = useAppDispatch();
 
-  const productState = useAppSelector(selectProductState);
-  const productData = useAppSelector(selectProduct);
-  const productContent = useAppSelector(selectProductContent);
-  const filters = useAppSelector(selectFilters);
-  const operations = useAppSelector(selectOperations);
-  const pagination = useAppSelector(selectPagination);
-  const isLoading = useAppSelector(selectIsLoading);
-  const error = useAppSelector(selectError);
+  const locations = useAppSelector(selectLocations);
+  const isLoading = useAppSelector(selectLocationIsLoading);
+  const error = useAppSelector(selectLocationError);
+  const operations = useAppSelector(selectLocationOperations);
 
   return {
-    productState,
-    productData,
-    productContent,
+    locations,
     isLoading,
     error,
-    filters,
     operations,
-    pagination,
     dispatch,
   };
 };

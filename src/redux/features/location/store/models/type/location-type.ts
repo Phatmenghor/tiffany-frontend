@@ -1,24 +1,14 @@
-export interface ProductFilters {
-  search: string;
-  pageNo: number;
-  categoriesId?: string;
-  subCategoriesId?: string;
-  status?: string;
-  hasPromotion?: string;
-}
+import { LocationResponseModel } from "../response/location-response";
 
-export interface OperationStates {
+export interface LocationOperationStates {
   isCreating: boolean;
   isUpdating: boolean;
   isDeleting: boolean;
-  isFetchingDetail: boolean;
 }
 
-export interface ProductManagementState {
-  data: AllProductResponseModel | null;
-  selectedProduct: ProductDetailResponseModel | null;
+export interface LocationManagementState {
+  locations: LocationResponseModel[];
   isLoading: boolean;
   error: string | null;
-  filters: ProductFilters;
-  operations: OperationStates;
+  operations: LocationOperationStates;
 }
