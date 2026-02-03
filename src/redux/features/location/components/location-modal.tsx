@@ -49,7 +49,8 @@ type Props = {
 // Helper: load Google Maps script once
 function loadGoogleMapsScript(): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (window.google?.maps) {
+    // Already fully loaded
+    if (window.google?.maps?.Map) {
       resolve();
       return;
     }
@@ -57,13 +58,20 @@ function loadGoogleMapsScript(): Promise<void> {
       'script[src*="maps.googleapis.com"]',
     ) as HTMLScriptElement | null;
     if (existing) {
-      if (window.google?.maps) {
+      // Script tag exists – wait until Map constructor is available
+      if (window.google?.maps?.Map) {
         resolve();
       } else {
-        existing.addEventListener("load", () => resolve());
-        existing.addEventListener("error", () =>
-          reject(new Error("Failed to load Google Maps")),
-        );
+        const check = setInterval(() => {
+          if (window.google?.maps?.Map) {
+            clearInterval(check);
+            resolve();
+          }
+        }, 50);
+        existing.addEventListener("error", () => {
+          clearInterval(check);
+          reject(new Error("Failed to load Google Maps"));
+        });
       }
       return;
     }
@@ -73,10 +81,25 @@ function loadGoogleMapsScript(): Promise<void> {
       return;
     }
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&loading=async`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
     script.async = true;
     script.defer = true;
-    script.onload = () => resolve();
+    script.onload = () => {
+      // The script fires onload but Map may not be on the object yet in
+      // some edge cases – poll briefly to be safe.
+      const check = setInterval(() => {
+        if (window.google?.maps?.Map) {
+          clearInterval(check);
+          resolve();
+        }
+      }, 50);
+      // Fallback: resolve after 5s even if poll never fires
+      setTimeout(() => {
+        clearInterval(check);
+        if (window.google?.maps?.Map) resolve();
+        else reject(new Error("Google Maps loaded but Map not available"));
+      }, 5000);
+    };
     script.onerror = () => reject(new Error("Failed to load Google Maps"));
     document.head.appendChild(script);
   });
