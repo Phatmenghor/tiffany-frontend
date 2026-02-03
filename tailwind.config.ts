@@ -7,21 +7,21 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          50: "#F0FAFA",
-          100: "#D4F3F0",
-          200: "#B3EBE6",
-          300: "#92E3DC",
-          400: "#81D8D0",
-          500: "#81D8D0", // main
-          600: "#5CBDB5", // darker
-          700: "#3E9E97",
-          800: "#2A7A74",
-          900: "#165651",
-          950: "#0A3330",
-          main: "#81D8D0",
-          darker: "#5CBDB5",
-          lighter: "#B3EBE6",
-          subtle: "#D4F3F0",
+          50: "#F3F7F0",
+          100: "#E2EDD9",
+          200: "#BDD5AA",
+          300: "#93BA78",
+          400: "#6B9D4F",
+          500: "#57823D", // main
+          600: "#476B32", // darker
+          700: "#3C5A2A",
+          800: "#304922",
+          900: "#25381A",
+          950: "#162110",
+          main: "#57823D",
+          darker: "#476B32",
+          lighter: "#93BA78",
+          subtle: "#E2EDD9",
         },
 
         status: {

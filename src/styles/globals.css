@@ -53,10 +53,10 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 174 44% 68%;
-    --primary-foreground: 174 60% 15%;
-    --primary-hover: 174 44% 58%;
-    --primary-active: 174 44% 48%;
+    --primary: 97 36% 37%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 97 36% 32%;
+    --primary-active: 97 36% 27%;
 
     --secondary: 220 13% 95%;
     --secondary-foreground: 240 5.9% 10%;
@@ -66,9 +66,9 @@
     --muted-foreground: 220 8.5% 46%;
     --muted-hover: 220 13% 91%;
 
-    --accent: 174 44% 95%;
-    --accent-foreground: 174 44% 29%;
-    --accent-hover: 174 44% 91%;
+    --accent: 97 36% 95%;
+    --accent-foreground: 97 36% 25%;
+    --accent-hover: 97 36% 91%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
@@ -78,8 +78,8 @@
     --border-strong: 220 13% 75%;
     --border-subtle: 220 13% 96%;
     --input: 220 13% 91%;
-    --input-focus: 174 44% 68%;
-    --ring: 174 44% 68%;
+    --input-focus: 97 36% 37%;
+    --ring: 97 36% 37%;
 
     --success: 146 79% 41%;
     --success-foreground: 0 0% 98%;
@@ -105,7 +105,7 @@
     --info-100: 215 79% 91%;
     --info-hover: 215 79% 50%;
 
-    --chart-1: 174 44% 68%;
+    --chart-1: 97 36% 37%;
     --chart-2: 39 85% 55%;
     --chart-3: 215 79% 55%;
     --chart-4: 146 79% 41%;
@@ -117,12 +117,12 @@
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 174 44% 68%;
-    --sidebar-primary-foreground: 174 60% 15%;
-    --sidebar-accent: 174 44% 95%;
-    --sidebar-accent-foreground: 174 44% 29%;
+    --sidebar-primary: 97 36% 37%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 97 36% 95%;
+    --sidebar-accent-foreground: 97 36% 25%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 174 44% 68%;
+    --sidebar-ring: 97 36% 37%;
 
     --surface-1: 0 0% 100%;
     --surface-2: 220 13% 98%;
@@ -200,7 +200,7 @@
 }
 
 #nprogress .bar {
-  background: #81D8D0 !important;
+  background: #57823D !important;
   position: fixed;
   z-index: 1031;
   top: 0;
@@ -208,7 +208,7 @@
   width: 100%;
   height: 2px;
   border-radius: 0;
-  box-shadow: 0 0 5px rgba(129, 216, 208, 0.3), 0 0 8px rgba(129, 216, 208, 0.15);
+  box-shadow: 0 0 5px rgba(87, 130, 61, 0.3), 0 0 8px rgba(87, 130, 61, 0.15);
   transition: all 0.2s ease-in-out;
 }
 
@@ -221,28 +221,28 @@
   background: linear-gradient(
     to right,
     transparent,
-    rgba(129, 216, 208, 0.6),
-    #81D8D0
+    rgba(87, 130, 61, 0.6),
+    #57823D
   ) !important;
-  box-shadow: 0 0 8px rgba(129, 216, 208, 0.8), 0 0 4px #81D8D0;
+  box-shadow: 0 0 8px rgba(87, 130, 61, 0.8), 0 0 4px #57823D;
   transform: rotate(2deg) translate(0px, -2px);
   border-radius: 0;
 }
 
 body.route-changing #nprogress .bar {
-  background: #81D8D0 !important;
+  background: #57823D !important;
   height: 2px;
-  box-shadow: 0 0 8px rgba(129, 216, 208, 0.4), 0 0 12px rgba(129, 216, 208, 0.2);
+  box-shadow: 0 0 8px rgba(87, 130, 61, 0.4), 0 0 12px rgba(87, 130, 61, 0.2);
 }
 
 body.route-changing #nprogress .peg {
   background: linear-gradient(
     to right,
     transparent,
-    rgba(129, 216, 208, 0.8),
-    #81D8D0
+    rgba(87, 130, 61, 0.8),
+    #57823D
   ) !important;
-  box-shadow: 0 0 10px rgba(129, 216, 208, 0.9), 0 0 5px #81D8D0;
+  box-shadow: 0 0 10px rgba(87, 130, 61, 0.9), 0 0 5px #57823D;
 }
 
 #nprogress .peg {

@@ -144,13 +144,9 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
     setIsTogglingFavorite(true);
     try {
-      const wasFavorited = product?.isFavorited;
       await favoriteDispatch(
         toggleFavorite({ productId: product.id }),
       ).unwrap();
-      showToast.success(
-        wasFavorited ? "Removed from favorites" : "Added to favorites",
-      );
     } catch (error: any) {
       showToast.error(error?.message || "Failed to update favorites");
     } finally {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
@@ -60,6 +60,20 @@ export function Navbar() {
   // Cart and favorites state
   const { totalItems: cartItemCount } = useCartState();
   const { totalItems: favoriteItemCount } = useFavoriteState();
+
+  // Animation state for favorites badge
+  const [favoriteAnimating, setFavoriteAnimating] = useState(false);
+  const prevFavoriteCount = useRef(favoriteItemCount);
+
+  // Trigger animation when favorite count changes
+  useEffect(() => {
+    if (prevFavoriteCount.current !== favoriteItemCount && favoriteItemCount > 0) {
+      setFavoriteAnimating(true);
+      const timer = setTimeout(() => setFavoriteAnimating(false), 300);
+      return () => clearTimeout(timer);
+    }
+    prevFavoriteCount.current = favoriteItemCount;
+  }, [favoriteItemCount]);
 
   // Debounce search query
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
@@ -288,7 +302,10 @@ export function Navbar() {
                 {favoriteItemCount > 0 && (
                   <Badge
                     variant="destructive"
-                    className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                    className={cn(
+                      "absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs transition-transform duration-300",
+                      favoriteAnimating && "animate-slide-down"
+                    )}
                   >
                     {favoriteItemCount}
                   </Badge>

@@ -104,11 +104,21 @@ export default function FavoritesPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">My Favorites</h1>
-            <p className="text-muted-foreground">
-              {totalItems} {totalItems === 1 ? "item" : "items"} saved
-            </p>
+          <div className="flex items-center gap-4">
+            <CustomButton
+              variant="ghost"
+              size="icon"
+              onClick={() => router.back()}
+              className="h-10 w-10"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </CustomButton>
+            <div>
+              <h1 className="text-3xl font-bold mb-1">My Favorites</h1>
+              <p className="text-muted-foreground">
+                {totalItems} {totalItems === 1 ? "item" : "items"} saved
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             {/* Clear All Button */}
@@ -126,50 +136,13 @@ export default function FavoritesPage() {
               )}
               Clear All
             </CustomButton>
-            <CustomButton
-              variant="ghost"
-              onClick={() => router.back()}
-              className="gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Continue Shopping
-            </CustomButton>
           </div>
         </div>
 
         {/* Favorites Items Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {items.map((product) => (
-            <div key={product.id} className="relative group">
-              <ProductCard product={product} />
-
-              {/* Quick Actions Overlay */}
-              <div className="absolute inset-x-0 bottom-0 translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 bg-gradient-to-t from-black/95 to-transparent p-3 rounded-b-lg flex flex-col gap-2 z-30">
-                <CustomButton
-                  size="sm"
-                  className="w-full gap-2"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleMoveToCart(product.id);
-                  }}
-                >
-                  <ShoppingCart className="h-3 w-3" />
-                  Add to Cart
-                </CustomButton>
-                <CustomButton
-                  size="sm"
-                  variant="outline"
-                  className="w-full gap-2 bg-white/10 hover:bg-white/20 text-white border-white/20"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleRemoveOne(product.id);
-                  }}
-                >
-                  <Trash2 className="h-3 w-3" />
-                  Remove
-                </CustomButton>
-              </div>
-            </div>
+            <ProductCard key={product.id} product={product} />
           ))}
         </div>
 
