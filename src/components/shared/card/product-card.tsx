@@ -277,14 +277,17 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
             <div className="mt-auto">
               <div className="flex flex-col mb-2">
+                <span
+                  className={`text-xs text-muted-foreground line-through ${
+                    product.hasActivePromotion ? "visible" : "invisible"
+                  }`}
+                >
+                  {formatCurrency(product.displayOriginPrice)}
+                </span>
+
                 <span className="text-lg font-bold text-primary">
                   {formatCurrency(product.displayPrice)}
                 </span>
-                {product.hasActivePromotion && (
-                  <span className="text-xs text-muted-foreground line-through">
-                    {formatCurrency(product.displayOriginPrice)}
-                  </span>
-                )}
               </div>
 
               {isInCart ? (

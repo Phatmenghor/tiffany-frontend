@@ -30,22 +30,17 @@ interface ProductFiltersProps {
 
 export function ProductFilters({
   categories = [],
-  brands = [],
   totalResults,
 }: ProductFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [selectedBrand, setSelectedBrand] = useState<string>("");
-  const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [hasPromotion, setHasPromotion] = useState<boolean>(false);
   const [sortBy, setSortBy] = useState<string>("newest");
 
   useEffect(() => {
     setSelectedCategory(searchParams.get("categoryId") || "");
-    setSelectedBrand(searchParams.get("brandId") || "");
-    setSelectedStatus(searchParams.get("status") || "");
     setHasPromotion(searchParams.get("hasPromotion") === "true");
     setSortBy(searchParams.get("sortBy") || "newest");
   }, [searchParams]);
@@ -66,12 +61,9 @@ export function ProductFilters({
     router.push("/products");
   };
 
-  const activeFiltersCount = [
-    selectedCategory,
-    selectedBrand,
-    selectedStatus,
-    hasPromotion,
-  ].filter(Boolean).length;
+  const activeFiltersCount = [selectedCategory, hasPromotion].filter(
+    Boolean,
+  ).length;
 
   const FilterContent = () => (
     <div className="space-y-6">
@@ -97,67 +89,6 @@ export function ProductFilters({
             ))}
           </SelectContent>
         </Select>
-      </div>
-
-      <Separator />
-
-      {/* Brand Filter */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Tag className="h-4 w-4 text-muted-foreground" />
-          <label className="text-sm font-medium">Brand</label>
-        </div>
-        <Select
-          value={selectedBrand || "all"}
-          onValueChange={(value) => updateFilters("brandId", value)}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="All Brands" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Brands</SelectItem>
-            {brands.map((brand) => (
-              <SelectItem key={brand.id} value={brand.id}>
-                {brand.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <Separator />
-
-      {/* Availability */}
-      <div className="space-y-3">
-        <label className="text-sm font-medium">Availability</label>
-        <div className="grid grid-cols-2 gap-2">
-          <Button
-            variant={selectedStatus === "ACTIVE" ? "default" : "outline"}
-            size="sm"
-            className="w-full"
-            onClick={() =>
-              updateFilters(
-                "status",
-                selectedStatus === "ACTIVE" ? "" : "ACTIVE"
-              )
-            }
-          >
-            In Stock
-          </Button>
-          <Button
-            variant={selectedStatus === "OUT_OF_STOCK" ? "default" : "outline"}
-            size="sm"
-            className="w-full"
-            onClick={() =>
-              updateFilters(
-                "status",
-                selectedStatus === "OUT_OF_STOCK" ? "" : "OUT_OF_STOCK"
-              )
-            }
-          >
-            Out of Stock
-          </Button>
-        </div>
       </div>
 
       <Separator />

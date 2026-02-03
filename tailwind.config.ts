@@ -264,6 +264,7 @@ const config: Config = {
         slow: "var(--transition-slow)",
       },
       maxWidth: {
+        "7xl": "1140px",
         "8xl": "1340px",
         "9xl": "1600px",
       },

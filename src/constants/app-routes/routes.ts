@@ -13,6 +13,8 @@ export const ROUTES = {
     LOGIN: "/login",
   },
 
+  LOCATION: "/location",
+
   // Admin routes
   ADMIN: {
     ROOT: "/admin",

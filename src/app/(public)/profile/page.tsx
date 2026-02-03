@@ -3,13 +3,10 @@
 import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Edit, Loader2, Trash2, Lock, User } from "lucide-react";
+import { Edit, Loader2, Trash2, Lock, User, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { TextField } from "@/components/shared/form-field/text-field";
-import { TextareaField } from "@/components/shared/form-field/text-area-field";
 import { ImageUploadField } from "@/components/shared/form-field/image-upload-field";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
@@ -27,24 +24,16 @@ import { clearError } from "@/redux/features/auth/store/slice/auth-slice";
 import ChangePasswordModal from "@/components/shared/modal/change-password-modal";
 import { DeleteConfirmationModal } from "@/components/shared/modal/delete-confirmation-modal";
 import { useRouter } from "next/navigation";
+import { ROUTES } from "@/constants/app-routes/routes";
 import { clearToken } from "@/utils/local-storage/token";
 import { CustomAvatar } from "@/components/shared/avator/custom-avator";
-import Loading from "@/components/shared/common/loading";
 import { isBase64Image, uploadImage } from "@/utils/common/upload-image";
 import { removeUserInfo } from "@/utils/local-storage/userInfo";
-
-// Profile update schema
-const profileSchema = z.object({
-  profileImageUrl: z.string().optional(),
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  phoneNumber: z.string().min(1, "Phone number is required"),
-  position: z.string().optional(),
-  address: z.string().optional(),
-  notes: z.string().optional(),
-});
-
-type ProfileFormData = z.infer<typeof profileSchema>;
+import { Loading } from "@/components/shared/common/loading";
+import {
+  ProfileFormData,
+  profileSchema,
+} from "@/redux/features/auth/store/models/schema/user.schema";
 
 export default function UserProfilePage() {
   const dispatch = useAppDispatch();
@@ -72,9 +61,7 @@ export default function UserProfilePage() {
       firstName: "",
       lastName: "",
       phoneNumber: "",
-      position: "",
-      address: "",
-      notes: "",
+      email: "",
     },
     mode: "onChange",
   });
@@ -92,9 +79,7 @@ export default function UserProfilePage() {
         firstName: userProfile.firstName || "",
         lastName: userProfile.lastName || "",
         phoneNumber: userProfile.phoneNumber || "",
-        position: userProfile.position || "",
-        address: userProfile.address || "",
-        notes: userProfile.notes || "",
+        email: userProfile.email || "",
       });
     }
   }, [userProfile, reset]);
@@ -126,9 +111,7 @@ export default function UserProfilePage() {
         firstName: data.firstName,
         lastName: data.lastName,
         phoneNumber: data.phoneNumber,
-        position: data.position,
-        address: data.address,
-        notes: data.notes,
+        email: data.email,
       };
 
       await dispatch(updateProfileService(payload)).unwrap();
@@ -147,9 +130,6 @@ export default function UserProfilePage() {
         firstName: userProfile.firstName || "",
         lastName: userProfile.lastName || "",
         phoneNumber: userProfile.phoneNumber || "",
-        position: userProfile.position || "",
-        address: userProfile.address || "",
-        notes: userProfile.notes || "",
       });
     }
     setIsEditing(false);
@@ -164,7 +144,10 @@ export default function UserProfilePage() {
       clearToken();
       removeUserInfo();
 
-      router.refresh();
+      // Redirect to login
+      setTimeout(() => {
+        router.replace(ROUTES.AUTH.LOGIN);
+      }, 100);
     } catch (error: any) {
       showToast.error(error || "Failed to delete account");
     }
@@ -198,11 +181,6 @@ export default function UserProfilePage() {
                     <p className="text-muted-foreground text-sm">
                       {userProfile?.email}
                     </p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge variant="secondary" className="text-xs">
-                        {userProfile?.userType}
-                      </Badge>
-                    </div>
                   </div>
 
                   <div className="flex gap-2">
@@ -340,34 +318,15 @@ export default function UserProfilePage() {
 
                     <TextField
                       control={control}
-                      name="position"
-                      label="Position"
-                      placeholder="e.g., Software Engineer"
+                      name="email"
+                      label="Email"
+                      type="email"
+                      placeholder="Enter email address"
                       disabled={!isEditing}
-                      error={errors.position}
+                      required
+                      error={errors.phoneNumber}
                     />
                   </div>
-
-                  {/* Address - Full Width */}
-                  <TextField
-                    control={control}
-                    name="address"
-                    label="Address"
-                    placeholder="Enter your address"
-                    disabled={!isEditing}
-                    error={errors.address}
-                  />
-
-                  {/* Notes - Full Width */}
-                  <TextareaField
-                    control={control}
-                    name="notes"
-                    label="Notes"
-                    placeholder="Additional notes or information"
-                    rows={4}
-                    disabled={!isEditing}
-                    error={errors.notes}
-                  />
                 </div>
               </form>
             </CardContent>
@@ -377,6 +336,14 @@ export default function UserProfilePage() {
         {/* Security Section */}
         {activeSection === "security" && (
           <div className="space-y-4">
+            {/* Connected Accounts */}
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+                <Link2 className="h-4 w-4" />
+                Connected Accounts
+              </h3>
+            </div>
+
             {/* Change Password */}
             <Card>
               <CardContent className="p-6">

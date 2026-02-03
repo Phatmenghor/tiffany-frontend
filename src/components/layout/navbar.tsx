@@ -17,6 +17,7 @@ import {
   Settings,
   Bell,
   CreditCard,
+  LocationEdit,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,13 +36,13 @@ import { LoginModal } from "../shared/modal/login-modal";
 import { CustomDropdownMenu } from "../shared/common/custom-dropdown-menu";
 import { PageContainer } from "../shared/common/page-container";
 import { cn } from "@/lib/utils";
+import { ROUTES } from "@/constants/app-routes/routes";
 
 const navigationLinks = [
   { name: "Home", href: "/" },
   { name: "Products", href: "/products" },
   { name: "Promotions", href: "/products?hasPromotion=true" },
   { name: "Categories", href: "/categories" },
-  { name: "Brands", href: "/brands" },
 ];
 
 export function Navbar() {
@@ -67,7 +68,10 @@ export function Navbar() {
 
   // Trigger animation when favorite count changes
   useEffect(() => {
-    if (prevFavoriteCount.current !== favoriteItemCount && favoriteItemCount > 0) {
+    if (
+      prevFavoriteCount.current !== favoriteItemCount &&
+      favoriteItemCount > 0
+    ) {
       setFavoriteAnimating(true);
       const timer = setTimeout(() => setFavoriteAnimating(false), 300);
       return () => clearTimeout(timer);
@@ -90,7 +94,6 @@ export function Navbar() {
   useEffect(() => {
     // Only handle search if there's actually a search query
     if (!debouncedSearchQuery.trim()) {
-      // Only clear search param if it exists in URL
       const hasSearchParam = searchParams.get("q");
       if (hasSearchParam) {
         const params = new URLSearchParams(searchParams.toString());
@@ -139,15 +142,9 @@ export function Navbar() {
           onClick: () => router.push("/profile"),
         },
         {
-          label: "Settings",
-          icon: <Settings className="h-4 w-4" />,
-          onClick: () => router.push("/settings"),
-        },
-        {
-          label: "Notifications",
-          icon: <Bell className="h-4 w-4" />,
-          onClick: () => router.push("/notifications"),
-          separator: true,
+          label: "Location",
+          icon: <LocationEdit className="h-4 w-4" />,
+          onClick: () => router.push(ROUTES.LOCATION),
         },
       ],
     },
@@ -163,12 +160,6 @@ export function Navbar() {
           label: "Favorites",
           icon: <Heart className="h-4 w-4" />,
           onClick: () => router.push("/favorites"),
-        },
-        {
-          label: "Payment Methods",
-          icon: <CreditCard className="h-4 w-4" />,
-          onClick: () => router.push("/payment-methods"),
-          separator: true,
         },
       ],
     },
@@ -304,7 +295,7 @@ export function Navbar() {
                     variant="destructive"
                     className={cn(
                       "absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs transition-transform duration-300",
-                      favoriteAnimating && "animate-slide-down"
+                      favoriteAnimating && "animate-slide-down",
                     )}
                   >
                     {favoriteItemCount}

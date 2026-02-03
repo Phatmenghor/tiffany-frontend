@@ -135,19 +135,19 @@
     --nprogress-color: var(--primary);
     --nprogress-height: 2px;
     --nprogress-active-height: 2px;
-    --nprogress-shadow: 0 0 5px hsl(var(--primary) / 0.3),
-      0 0 8px hsl(var(--primary) / 0.15);
-    --nprogress-active-shadow: 0 0 8px hsl(var(--primary) / 0.4),
-      0 0 12px hsl(var(--primary) / 0.2);
+    --nprogress-shadow:
+      0 0 5px hsl(var(--primary) / 0.3), 0 0 8px hsl(var(--primary) / 0.15);
+    --nprogress-active-shadow:
+      0 0 8px hsl(var(--primary) / 0.4), 0 0 12px hsl(var(--primary) / 0.2);
 
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1),
-      0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1),
-      0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1),
-      0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-md:
+      0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg:
+      0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl:
+      0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   }
 }
 
@@ -158,9 +158,12 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: var(--font-geist-sans), "Noto Sans Khmer", ui-sans-serif,
-      system-ui, sans-serif;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family:
+      var(--font-geist-sans), "Noto Sans Khmer", ui-sans-serif, system-ui,
+      sans-serif;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
     line-height: 1.5;
   }
 
@@ -200,7 +203,7 @@
 }
 
 #nprogress .bar {
-  background: #57823D !important;
+  background: #57823d !important;
   position: fixed;
   z-index: 1031;
   top: 0;
@@ -208,7 +211,9 @@
   width: 100%;
   height: 2px;
   border-radius: 0;
-  box-shadow: 0 0 5px rgba(87, 130, 61, 0.3), 0 0 8px rgba(87, 130, 61, 0.15);
+  box-shadow:
+    0 0 5px rgba(87, 130, 61, 0.3),
+    0 0 8px rgba(87, 130, 61, 0.15);
   transition: all 0.2s ease-in-out;
 }
 
@@ -222,17 +227,21 @@
     to right,
     transparent,
     rgba(87, 130, 61, 0.6),
-    #57823D
+    #57823d
   ) !important;
-  box-shadow: 0 0 8px rgba(87, 130, 61, 0.8), 0 0 4px #57823D;
+  box-shadow:
+    0 0 8px rgba(87, 130, 61, 0.8),
+    0 0 4px #57823d;
   transform: rotate(2deg) translate(0px, -2px);
   border-radius: 0;
 }
 
 body.route-changing #nprogress .bar {
-  background: #57823D !important;
+  background: #57823d !important;
   height: 2px;
-  box-shadow: 0 0 8px rgba(87, 130, 61, 0.4), 0 0 12px rgba(87, 130, 61, 0.2);
+  box-shadow:
+    0 0 8px rgba(87, 130, 61, 0.4),
+    0 0 12px rgba(87, 130, 61, 0.2);
 }
 
 body.route-changing #nprogress .peg {
@@ -240,9 +249,11 @@ body.route-changing #nprogress .peg {
     to right,
     transparent,
     rgba(87, 130, 61, 0.8),
-    #57823D
+    #57823d
   ) !important;
-  box-shadow: 0 0 10px rgba(87, 130, 61, 0.9), 0 0 5px #57823D;
+  box-shadow:
+    0 0 10px rgba(87, 130, 61, 0.9),
+    0 0 5px #57823d;
 }
 
 #nprogress .peg {
@@ -430,20 +441,40 @@ body.route-changing #nprogress .peg {
   }
 }
 
-/* React-Toastify: Success toast uses primary color */
-.Toastify__toast--success {
-  background: hsl(var(--primary)) !important;
-  color: hsl(var(--primary-foreground)) !important;
+/* React-Toastify: White background with primary color progress bar only */
+.Toastify__toast {
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--foreground)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  box-shadow: var(--shadow-lg) !important;
+  border-radius: var(--radius) !important;
 }
 
 .Toastify__toast--success .Toastify__progress-bar {
-  background: hsl(var(--primary-foreground) / 0.4) !important;
+  background: hsl(var(--primary)) !important;
 }
 
-.Toastify__toast--success .Toastify__close-button {
-  color: hsl(var(--primary-foreground)) !important;
+.Toastify__toast--error .Toastify__progress-bar {
+  background: hsl(var(--error)) !important;
 }
 
-.Toastify__toast--success .Toastify__toast-icon svg {
-  fill: hsl(var(--primary-foreground)) !important;
+.Toastify__toast--warning .Toastify__progress-bar {
+  background: hsl(var(--warning)) !important;
+}
+
+.Toastify__toast--info .Toastify__progress-bar {
+  background: hsl(var(--info)) !important;
+}
+
+.Toastify__close-button {
+  color: hsl(var(--muted-foreground)) !important;
+  opacity: 0.6 !important;
+}
+
+.Toastify__close-button:hover {
+  opacity: 1 !important;
+}
+
+.Toastify__toast-icon {
+  color: hsl(var(--foreground)) !important;
 }

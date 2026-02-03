@@ -26,15 +26,8 @@ export default function ProductsPage() {
   const observerRef = useRef<HTMLDivElement>(null);
   const isLoadingRef = useRef(false);
 
-  const {
-    dispatch,
-    products,
-    pagination,
-    loading,
-    categories,
-    brands,
-    loadedFilters,
-  } = usePublicProductState();
+  const { dispatch, products, pagination, loading, categories, loadedFilters } =
+    usePublicProductState();
 
   const [page, setPage] = useState(1);
 
@@ -81,7 +74,7 @@ export default function ProductsPage() {
       await dispatch(
         fetchPublicProducts({
           pageNo,
-          pageSize: 20,
+          pageSize: 40,
           ...(search && { search }),
           ...(hasPromotion && { hasPromotion: true }),
           ...(categoryId && { categoryId }),
@@ -99,7 +92,6 @@ export default function ProductsPage() {
     const hasProducts = products.length > 0;
     const filtersMatch = loadedFilters === currentFilters;
 
-    // Case 1: Have products with matching filters -> Do nothing (coming back from detail)
     if (hasProducts && filtersMatch) {
       return;
     }
@@ -112,7 +104,7 @@ export default function ProductsPage() {
       }
 
       setPage(1);
-      dispatch(setLoadedFilters(currentFilters)); // Save current filters
+      dispatch(setLoadedFilters(currentFilters));
       loadProducts(1);
     }
   }, [currentFilters, loadedFilters, products.length, loadProducts, dispatch]);
@@ -160,7 +152,6 @@ export default function ProductsPage() {
           <div className="sticky top-24 h-[calc(100vh-7rem)]">
             <ProductFilters
               categories={categories}
-              brands={brands}
               totalResults={pagination.totalElements}
             />
           </div>
@@ -172,7 +163,6 @@ export default function ProductsPage() {
           <div className="lg:hidden mb-6">
             <ProductFilters
               categories={categories}
-              brands={brands}
               totalResults={pagination.totalElements}
             />
           </div>
