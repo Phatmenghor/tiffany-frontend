@@ -43,7 +43,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
   // Get current cart item for this product (without size)
   const cartItem = cartItems.find(
-    (item) => item.productId === product.id && !item.productSizeId
+    (item) => item.productId === product.id && !item.productSizeId,
   );
   const quantity = cartItem?.quantity || 0;
 
@@ -57,7 +57,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
   // Image load/error state
   const [imageLoaded, setImageLoaded] = useState(
-    imageLoadedCache.has(imageUrl)
+    imageLoadedCache.has(imageUrl),
   );
   const [imageError, setImageError] = useState(false);
 
@@ -86,7 +86,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
     }
 
     // If product has sizes, show size selection modal
-    if (product.hasSizes && product.sizes && product.sizes.length > 0) {
+    if (product.hasSizes) {
       setShowSizeModal(true);
       return;
     }
@@ -95,7 +95,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
     setIsAddingToCart(true);
     try {
       await cartDispatch(
-        addToCart({ productId: product.id, quantity: 1 })
+        addToCart({ productId: product.id, quantity: 1 }),
       ).unwrap();
       showToast.success("Added to cart");
     } catch (error: any) {
@@ -110,7 +110,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
     e.stopPropagation();
 
     // If product has sizes, show size selection modal
-    if (product.hasSizes && product.sizes && product.sizes.length > 0) {
+    if (product.hasSizes) {
       setShowSizeModal(true);
       return;
     }
@@ -123,7 +123,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
         updateCartItem({
           productId: product.id,
           quantity: quantity + 1,
-        })
+        }),
       ).unwrap();
     } catch (error: any) {
       showToast.error(error?.message || "Failed to update cart");
@@ -137,7 +137,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
     e.stopPropagation();
 
     // If product has sizes, show size selection modal for management
-    if (product.hasSizes && product.sizes && product.sizes.length > 0) {
+    if (product.hasSizes) {
       setShowSizeModal(true);
       return;
     }
@@ -151,7 +151,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
         updateCartItem({
           productId: product.id,
           quantity: quantity - 1,
-        })
+        }),
       ).unwrap();
       if (quantity === 1) {
         showToast.success("Removed from cart");
@@ -176,7 +176,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
     setIsTogglingFavorite(true);
     try {
       await favoriteDispatch(
-        toggleFavorite({ productId: product.id })
+        toggleFavorite({ productId: product.id }),
       ).unwrap();
     } catch (error: any) {
       showToast.error(error?.message || "Failed to update favorites");
@@ -197,7 +197,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
             "group relative bg-card rounded-lg border border-border hover:border-primary/30 overflow-hidden transition-colors duration-200 flex flex-col",
             isOutOfStock && "opacity-75",
             product?.hasActivePromotion && "ring-1 ring-amber-500/20",
-            className
+            className,
           )}
         >
           <div className="relative aspect-square overflow-hidden bg-muted/30">
@@ -213,7 +213,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
               loading={imageLoadedCache.has(imageUrl) ? undefined : "lazy"}
               className={cn(
                 "object-cover transition-opacity duration-200",
-                imageLoaded ? "opacity-100" : "opacity-0"
+                imageLoaded ? "opacity-100" : "opacity-0",
               )}
               onLoad={handleImageLoad}
               onError={handleImageError}
@@ -254,7 +254,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                   "h-8 w-8 rounded-full shadow-md",
                   product?.isFavorited
                     ? "bg-red-500 text-white hover:bg-red-600"
-                    : "bg-white hover:bg-red-50 hover:text-red-500"
+                    : "bg-white hover:bg-red-50 hover:text-red-500",
                 )}
                 onClick={handleToggleFavorite}
                 disabled={isTogglingFavorite}
@@ -262,7 +262,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                 <Heart
                   className={cn(
                     "h-4 w-4",
-                    product?.isFavorited && "fill-current"
+                    product?.isFavorited && "fill-current",
                   )}
                 />
               </CustomButton>
