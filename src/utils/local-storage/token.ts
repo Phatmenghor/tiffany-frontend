@@ -1,17 +1,12 @@
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
-import {
-  ACCESS_TOKEN_KEY,
-  REFRESH_TOKEN_KEY,
-  ACCESS_TOKEN_MAX_AGE,
-  REFRESH_TOKEN_MAX_AGE,
-} from "@/constants/storage-keys";
+import { ACCESS_TOKEN_KEY, ACCESS_TOKEN_MAX_AGE } from "@/constants/storage-keys";
 
 export function storeTokenRemember(token: string | undefined): void {
   if (typeof window === "undefined") {
     return;
   }
 
-  setCookie(ACCESS_TOKEN_KEY, token, { maxAge: 365 * 24 * 60 * 60 });
+  setCookie(ACCESS_TOKEN_KEY, token, { maxAge: ACCESS_TOKEN_MAX_AGE });
 }
 
 export function getToken() {
@@ -28,56 +23,10 @@ export function storeToken(token: string | undefined): void {
 }
 
 /**
- * Store refresh token in cookie
- */
-export function storeRefreshToken(refreshToken: string | undefined): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  setCookie(REFRESH_TOKEN_KEY, refreshToken, { maxAge: REFRESH_TOKEN_MAX_AGE });
-}
-
-/**
- * Get refresh token from cookie
- */
-export function getRefreshToken(): string | undefined {
-  const token = getCookie(REFRESH_TOKEN_KEY);
-  return token as string | undefined;
-}
-
-/**
- * Store both access and refresh tokens
- */
-export function storeTokens(
-  accessToken: string | undefined,
-  refreshToken: string | undefined
-): void {
-  storeToken(accessToken);
-  storeRefreshToken(refreshToken);
-}
-
-/**
- * Logout the current user
+ * Clear token (logout)
  */
 export function clearToken(): void {
-  // Delete auth cookie
   deleteCookie(ACCESS_TOKEN_KEY);
-}
-
-/**
- * Clear refresh token
- */
-export function clearRefreshToken(): void {
-  deleteCookie(REFRESH_TOKEN_KEY);
-}
-
-/**
- * Clear all authentication tokens
- */
-export function clearAllTokens(): void {
-  clearToken();
-  clearRefreshToken();
 }
 
 /**
@@ -85,14 +34,6 @@ export function clearAllTokens(): void {
  */
 export function isAuthenticated(): boolean {
   const token = getCookie(ACCESS_TOKEN_KEY);
-  return !!token;
-}
-
-/**
- * Check if refresh token exists
- */
-export function hasRefreshToken(): boolean {
-  const token = getCookie(REFRESH_TOKEN_KEY);
   return !!token;
 }
 

@@ -8,7 +8,7 @@ import {
   deleteAccountService,
 } from "../thunks/auth-thunks";
 import { AuthState } from "../models/type/auth-types";
-import { storeTokens, clearAllTokens } from "@/utils/local-storage/token";
+import { storeToken, clearToken } from "@/utils/local-storage/token";
 import { storeUserInfo, removeUserInfo } from "@/utils/local-storage/userInfo";
 
 const initialState: AuthState = {
@@ -34,7 +34,7 @@ const authSlice = createSlice({
       state.user = null;
       state.profile = null;
       state.error = null;
-      clearAllTokens();
+      clearToken();
       removeUserInfo();
     },
 
@@ -58,7 +58,7 @@ const authSlice = createSlice({
         state.isAuthenticated = !!action.payload.accessToken;
 
         if (action.payload.accessToken) {
-          storeTokens(action.payload.accessToken, action.payload.refreshToken);
+          storeToken(action.payload.accessToken);
         }
 
         if (action.payload) {
