@@ -36,6 +36,7 @@ import {
   Maximize2,
   Minimize2,
   LocateFixed,
+  AlertTriangle,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
@@ -46,65 +47,82 @@ type Props = {
   initialCoords?: { lat: number; lng: number } | null;
 };
 
-// Helper: load Google Maps script once
+// ---------------------------------------------------------------------------
+// Load Google Maps script once (returns when google.maps.Map is available)
+// ---------------------------------------------------------------------------
+let gmapLoadPromise: Promise<void> | null = null;
+
 function loadGoogleMapsScript(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    // Already fully loaded
+  if (gmapLoadPromise) return gmapLoadPromise;
+
+  gmapLoadPromise = new Promise<void>((resolve, reject) => {
     if (window.google?.maps?.Map) {
       resolve();
       return;
     }
+
     const existing = document.querySelector(
       'script[src*="maps.googleapis.com"]',
     ) as HTMLScriptElement | null;
+
     if (existing) {
-      // Script tag exists – wait until Map constructor is available
-      if (window.google?.maps?.Map) {
-        resolve();
-      } else {
-        const check = setInterval(() => {
+      const wait = () => {
+        const id = setInterval(() => {
           if (window.google?.maps?.Map) {
-            clearInterval(check);
+            clearInterval(id);
             resolve();
           }
-        }, 50);
-        existing.addEventListener("error", () => {
-          clearInterval(check);
-          reject(new Error("Failed to load Google Maps"));
-        });
-      }
+        }, 100);
+        setTimeout(() => {
+          clearInterval(id);
+          if (window.google?.maps?.Map) resolve();
+          else reject(new Error("Timeout waiting for Google Maps"));
+        }, 10000);
+      };
+      wait();
       return;
     }
+
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     if (!apiKey) {
-      reject(new Error("Google Maps API key not configured"));
+      reject(new Error("NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is not configured"));
       return;
     }
+
     const script = document.createElement("script");
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
     script.async = true;
     script.defer = true;
     script.onload = () => {
-      // The script fires onload but Map may not be on the object yet in
-      // some edge cases – poll briefly to be safe.
-      const check = setInterval(() => {
+      const id = setInterval(() => {
         if (window.google?.maps?.Map) {
-          clearInterval(check);
+          clearInterval(id);
           resolve();
         }
-      }, 50);
-      // Fallback: resolve after 5s even if poll never fires
+      }, 100);
       setTimeout(() => {
-        clearInterval(check);
+        clearInterval(id);
         if (window.google?.maps?.Map) resolve();
-        else reject(new Error("Google Maps loaded but Map not available"));
-      }, 5000);
+        else reject(new Error("Google Maps script loaded but Map unavailable"));
+      }, 10000);
     };
-    script.onerror = () => reject(new Error("Failed to load Google Maps"));
+    script.onerror = () => {
+      gmapLoadPromise = null;
+      reject(new Error("Failed to load Google Maps script"));
+    };
     document.head.appendChild(script);
   });
+
+  gmapLoadPromise.catch(() => {
+    gmapLoadPromise = null;
+  });
+
+  return gmapLoadPromise;
 }
 
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 export default function LocationModal({
   isOpen,
   onClose,
@@ -118,16 +136,20 @@ export default function LocationModal({
   const reduxError = useAppSelector(selectLocationError);
   const { isCreating, isUpdating } = operations;
 
+  // Refs
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<google.maps.Map | null>(null);
+  const geocoderRef = useRef<google.maps.Geocoder | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const idleListenerRef = useRef<google.maps.MapsEventListener | null>(null);
   const geocodeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const setValueRef = useRef<typeof setValue>(null!);
 
+  // State
   const [isMapReady, setIsMapReady] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
 
   const {
     control,
@@ -155,78 +177,82 @@ export default function LocationModal({
     mode: "onChange",
   });
 
+  // Keep setValue ref current so idle callback never goes stale
+  setValueRef.current = setValue;
+
   const latitude = watch("latitude");
   const longitude = watch("longitude");
 
   // ------------------------------------------------------------------
-  // Reverse geocode: fetch address components from lat/lng
+  // Reverse geocode using google.maps.Geocoder (client-side, no REST)
   // ------------------------------------------------------------------
-  const reverseGeocodeAndFill = useCallback(
-    async (lat: number, lng: number) => {
-      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-      if (!apiKey) return;
+  const reverseGeocode = useCallback((lat: number, lng: number) => {
+    const geocoder = geocoderRef.current;
+    if (!geocoder) return;
 
-      setIsReverseGeocoding(true);
-      try {
-        const res = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}&language=en`,
-        );
-        const data = await res.json();
+    setIsReverseGeocoding(true);
 
-        if (data.status === "OK" && data.results?.length > 0) {
-          const components = data.results[0].address_components || [];
-
-          let streetNumber = "";
-          let village = "";
-          let commune = "";
-          let district = "";
-          let province = "";
-          let country = "";
-
-          for (const comp of components) {
-            const types: string[] = comp.types;
-            if (types.includes("street_number")) {
-              streetNumber = comp.long_name;
-            } else if (types.includes("route")) {
-              streetNumber = streetNumber
-                ? `${streetNumber} ${comp.long_name}`
-                : comp.long_name;
-            } else if (
-              types.includes("sublocality_level_1") ||
-              types.includes("sublocality")
-            ) {
-              village = comp.long_name;
-            } else if (types.includes("locality")) {
-              commune = comp.long_name;
-            } else if (types.includes("administrative_area_level_2")) {
-              district = comp.long_name;
-            } else if (types.includes("administrative_area_level_1")) {
-              province = comp.long_name;
-            } else if (types.includes("country")) {
-              country = comp.long_name;
-            }
-          }
-
-          setValue("streetNumber", streetNumber, { shouldDirty: true });
-          setValue("village", village, { shouldDirty: true });
-          setValue("commune", commune, { shouldDirty: true });
-          setValue("district", district, { shouldDirty: true });
-          setValue("province", province, { shouldDirty: true });
-          setValue("country", country, { shouldDirty: true });
-        }
-      } catch (err) {
-        console.error("Reverse geocoding error:", err);
-      } finally {
+    geocoder.geocode(
+      { location: { lat, lng } },
+      (
+        results: google.maps.GeocoderResult[] | null,
+        status: google.maps.GeocoderStatus,
+      ) => {
         setIsReverseGeocoding(false);
-      }
-    },
-    [setValue],
-  );
+
+        if (status !== "OK" || !results || results.length === 0) {
+          console.warn("Geocoder failed:", status);
+          return;
+        }
+
+        const components = results[0].address_components || [];
+        let streetNumber = "";
+        let village = "";
+        let commune = "";
+        let district = "";
+        let province = "";
+        let country = "";
+
+        for (const comp of components) {
+          const t = comp.types;
+          if (t.includes("street_number")) {
+            streetNumber = comp.long_name;
+          } else if (t.includes("route")) {
+            streetNumber = streetNumber
+              ? `${streetNumber} ${comp.long_name}`
+              : comp.long_name;
+          } else if (
+            t.includes("sublocality_level_1") ||
+            t.includes("sublocality")
+          ) {
+            village = comp.long_name;
+          } else if (t.includes("locality")) {
+            commune = comp.long_name;
+          } else if (t.includes("administrative_area_level_2")) {
+            district = comp.long_name;
+          } else if (t.includes("administrative_area_level_1")) {
+            province = comp.long_name;
+          } else if (t.includes("country")) {
+            country = comp.long_name;
+          }
+        }
+
+        const sv = setValueRef.current;
+        sv("streetNumber", streetNumber, { shouldDirty: true });
+        sv("village", village, { shouldDirty: true });
+        sv("commune", commune, { shouldDirty: true });
+        sv("district", district, { shouldDirty: true });
+        sv("province", province, { shouldDirty: true });
+        sv("country", country, { shouldDirty: true });
+      },
+    );
+  }, []);
 
   // ------------------------------------------------------------------
-  // Called whenever the map stops moving – reads center, updates form
+  // Map idle handler – reads map center, updates coords + geocodes
+  // Called directly by Google Maps event, so must use refs for freshness.
   // ------------------------------------------------------------------
-  const handleMapIdle = useCallback(() => {
+  const onMapIdle = useCallback(() => {
     const map = googleMapRef.current;
     if (!map) return;
     const center = map.getCenter();
@@ -235,28 +261,23 @@ export default function LocationModal({
     const lat = center.lat();
     const lng = center.lng();
 
-    setValue("latitude", lat, { shouldDirty: true });
-    setValue("longitude", lng, { shouldDirty: true });
+    const sv = setValueRef.current;
+    sv("latitude", lat, { shouldDirty: true });
+    sv("longitude", lng, { shouldDirty: true });
     setIsDragging(false);
 
-    // Debounce reverse geocoding so we don't flood the API
+    // Debounce geocoding
     if (geocodeTimeoutRef.current) clearTimeout(geocodeTimeoutRef.current);
     geocodeTimeoutRef.current = setTimeout(() => {
-      reverseGeocodeAndFill(lat, lng);
+      reverseGeocode(lat, lng);
     }, 400);
-  }, [setValue, reverseGeocodeAndFill]);
+  }, [reverseGeocode]);
 
   // ------------------------------------------------------------------
-  // Initialize / reinitialize the Google Map
+  // Initialize Google Map
   // ------------------------------------------------------------------
   const initMap = useCallback(
     (container: HTMLDivElement, lat: number, lng: number) => {
-      // Clean up previous
-      if (idleListenerRef.current) {
-        google.maps.event.removeListener(idleListenerRef.current);
-        idleListenerRef.current = null;
-      }
-
       const map = new google.maps.Map(container, {
         center: { lat, lng },
         zoom: 17,
@@ -268,20 +289,24 @@ export default function LocationModal({
       });
 
       googleMapRef.current = map;
+      geocoderRef.current = new google.maps.Geocoder();
 
-      // Track drag state for pin animation
+      // Pin animation states
       map.addListener("dragstart", () => setIsDragging(true));
       map.addListener("dragend", () => setIsDragging(false));
 
-      // On idle (pan/zoom ends) – update coords + reverse geocode
-      idleListenerRef.current = map.addListener("idle", handleMapIdle);
+      // On idle -> update coords + reverse geocode
+      map.addListener("idle", onMapIdle);
 
-      // Set initial coords in form
-      setValue("latitude", lat, { shouldDirty: true });
-      setValue("longitude", lng, { shouldDirty: true });
-      reverseGeocodeAndFill(lat, lng);
+      // Set initial form values
+      const sv = setValueRef.current;
+      sv("latitude", lat, { shouldDirty: true });
+      sv("longitude", lng, { shouldDirty: true });
 
-      // Search autocomplete
+      // Initial reverse geocode
+      reverseGeocode(lat, lng);
+
+      // Places search autocomplete
       if (searchInputRef.current && google.maps.places) {
         const autocomplete = new google.maps.places.Autocomplete(
           searchInputRef.current,
@@ -293,42 +318,42 @@ export default function LocationModal({
           if (place.geometry?.location) {
             map.setCenter(place.geometry.location);
             map.setZoom(17);
+            // idle event will fire automatically after setCenter
           }
         });
       }
     },
-    [handleMapIdle, setValue, reverseGeocodeAndFill],
+    [onMapIdle, reverseGeocode],
   );
 
   // ------------------------------------------------------------------
-  // Load script + init map when modal opens
+  // Load script & init map when modal opens
   // ------------------------------------------------------------------
   useEffect(() => {
     if (!isOpen) {
       setIsMapReady(false);
       setIsFullScreen(false);
+      setMapError(null);
       return;
     }
 
     let cancelled = false;
 
-    const setup = async () => {
+    (async () => {
       try {
         await loadGoogleMapsScript();
-        if (cancelled) return;
-        setIsMapReady(true);
-      } catch (err) {
-        console.error("Google Maps load error:", err);
+        if (!cancelled) setIsMapReady(true);
+      } catch (err: any) {
+        if (!cancelled) setMapError(err?.message || "Failed to load map");
       }
-    };
+    })();
 
-    setup();
     return () => {
       cancelled = true;
     };
   }, [isOpen]);
 
-  // When map is ready and container is mounted, init map
+  // When ready, create the map
   useEffect(() => {
     if (!isMapReady || !mapContainerRef.current) return;
 
@@ -342,6 +367,7 @@ export default function LocationModal({
       lat = initialCoords.lat;
       lng = initialCoords.lng;
     } else {
+      // Default: Phnom Penh
       lat = 11.5564;
       lng = 104.9282;
     }
@@ -349,12 +375,9 @@ export default function LocationModal({
     initMap(mapContainerRef.current, lat, lng);
 
     return () => {
-      if (idleListenerRef.current) {
-        google.maps.event.removeListener(idleListenerRef.current);
-        idleListenerRef.current = null;
-      }
       if (geocodeTimeoutRef.current) clearTimeout(geocodeTimeoutRef.current);
       googleMapRef.current = null;
+      geocoderRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMapReady]);
@@ -399,7 +422,7 @@ export default function LocationModal({
   }, [isOpen, editData, reset, dispatch]);
 
   // ------------------------------------------------------------------
-  // My location button
+  // My location
   // ------------------------------------------------------------------
   const handleMyLocation = () => {
     if (!navigator.geolocation) {
@@ -414,9 +437,7 @@ export default function LocationModal({
           map.setZoom(17);
         }
       },
-      () => {
-        showToast.error("Unable to retrieve your location");
-      },
+      () => showToast.error("Unable to retrieve your location"),
     );
   };
 
@@ -471,6 +492,54 @@ export default function LocationModal({
   const isSubmitting = isCreate ? isCreating : isUpdating;
 
   // ------------------------------------------------------------------
+  // Shared UI pieces
+  // ------------------------------------------------------------------
+  const CenterPin = ({ size = "h-9 w-9" }: { size?: string }) => (
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full pointer-events-none z-10">
+      <div
+        className={`transition-transform duration-150 ${isDragging ? "-translate-y-3 scale-110" : "translate-y-0 scale-100"}`}
+      >
+        <MapPin
+          className={`${size} text-red-500 drop-shadow-lg`}
+          fill="currentColor"
+          strokeWidth={1.5}
+        />
+      </div>
+      <div
+        className={`h-1 bg-black/30 rounded-full mx-auto transition-all duration-150 ${isDragging ? "w-3 opacity-40" : "w-2 opacity-60"}`}
+      />
+    </div>
+  );
+
+  const CoordsBadge = ({ className = "" }: { className?: string }) => (
+    <div
+      className={`flex items-center gap-2 text-xs ${className}`}
+    >
+      <MapPin className="h-3 w-3 text-red-500 shrink-0" />
+      <span className="font-mono">
+        {latitude?.toFixed(6)}, {longitude?.toFixed(6)}
+      </span>
+      {isReverseGeocoding && (
+        <Loader2 className="h-3 w-3 animate-spin shrink-0" />
+      )}
+    </div>
+  );
+
+  const MapErrorBanner = () => (
+    <div className="absolute top-2 left-2 right-2 z-20 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2 flex items-start gap-2">
+      <AlertTriangle className="h-4 w-4 text-yellow-600 shrink-0 mt-0.5" />
+      <div className="text-xs text-yellow-800">
+        <p className="font-medium">Google Maps API key issue</p>
+        <p className="mt-0.5">
+          Enable Maps JavaScript API, Geocoding API &amp; Places API in your{" "}
+          <span className="font-medium">Google Cloud Console</span>, and ensure
+          billing is active.
+        </p>
+      </div>
+    </div>
+  );
+
+  // ------------------------------------------------------------------
   // Render
   // ------------------------------------------------------------------
   return (
@@ -482,7 +551,9 @@ export default function LocationModal({
             : "w-[95%] max-w-4xl max-h-[90vh]"
         }`}
       >
-        {/* ---- Full-screen map mode ---- */}
+        {/* ============================================================ */}
+        {/*  FULL-SCREEN MAP MODE                                        */}
+        {/* ============================================================ */}
         {isFullScreen ? (
           <div className="flex flex-col h-full">
             {/* Top bar */}
@@ -510,7 +581,7 @@ export default function LocationModal({
               </div>
             </div>
 
-            {/* Search bar */}
+            {/* Search */}
             <div className="px-4 py-2 border-b bg-background z-10">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -524,45 +595,30 @@ export default function LocationModal({
               </div>
             </div>
 
-            {/* Map fills remaining space */}
+            {/* Map */}
             <div className="flex-1 relative">
               <div ref={mapContainerRef} className="w-full h-full" />
+              <CenterPin size="h-10 w-10" />
 
-              {/* Center pin overlay */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full pointer-events-none z-10">
-                <div
-                  className={`transition-transform duration-150 ${isDragging ? "-translate-y-3 scale-110" : "translate-y-0 scale-100"}`}
-                >
-                  <MapPin className="h-10 w-10 text-red-500 drop-shadow-lg" fill="currentColor" strokeWidth={1.5} />
-                </div>
-                {/* Shadow dot */}
-                <div
-                  className={`w-2 h-1 bg-black/30 rounded-full mx-auto transition-all duration-150 ${isDragging ? "w-3 opacity-40" : "w-2 opacity-60"}`}
-                />
+              {/* Coords */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/90 backdrop-blur-sm border rounded-full px-4 py-2 shadow-lg z-10">
+                <CoordsBadge />
               </div>
 
-              {/* Coords badge */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/90 backdrop-blur-sm border rounded-full px-4 py-2 shadow-lg z-10 flex items-center gap-2 text-sm">
-                <MapPin className="h-4 w-4 text-red-500" />
-                <span className="font-mono text-xs">
-                  {latitude?.toFixed(6)}, {longitude?.toFixed(6)}
-                </span>
-                {isReverseGeocoding && (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                )}
-              </div>
-
-              {/* Loading overlay */}
-              {!isMapReady && (
+              {!isMapReady && !mapError && (
                 <div className="absolute inset-0 flex items-center justify-center bg-muted">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
               )}
+
+              {mapError && <MapErrorBanner />}
             </div>
           </div>
         ) : (
           <>
-            {/* ---- Normal modal mode ---- */}
+            {/* ======================================================== */}
+            {/*  NORMAL MODAL MODE                                       */}
+            {/* ======================================================== */}
             <FormHeader
               title={isCreate ? "Add New Location" : "Edit Location"}
               description={
@@ -589,7 +645,7 @@ export default function LocationModal({
                 <div className="space-y-5">
                   {/* --- Map Section --- */}
                   <div className="space-y-2">
-                    {/* Search + actions row */}
+                    {/* Search + actions */}
                     <div className="flex items-center gap-2">
                       <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -627,25 +683,9 @@ export default function LocationModal({
                         ref={mapContainerRef}
                         className="w-full h-[280px]"
                       />
+                      <CenterPin />
 
-                      {/* Center pin overlay */}
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full pointer-events-none z-10">
-                        <div
-                          className={`transition-transform duration-150 ${isDragging ? "-translate-y-3 scale-110" : "translate-y-0 scale-100"}`}
-                        >
-                          <MapPin
-                            className="h-9 w-9 text-red-500 drop-shadow-lg"
-                            fill="currentColor"
-                            strokeWidth={1.5}
-                          />
-                        </div>
-                        <div
-                          className={`w-2 h-1 bg-black/30 rounded-full mx-auto transition-all duration-150 ${isDragging ? "w-3 opacity-40" : "w-2 opacity-60"}`}
-                        />
-                      </div>
-
-                      {/* Loading overlay */}
-                      {!isMapReady && (
+                      {!isMapReady && !mapError && (
                         <div className="absolute inset-0 flex items-center justify-center bg-muted">
                           <div className="flex flex-col items-center gap-2">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -655,18 +695,14 @@ export default function LocationModal({
                           </div>
                         </div>
                       )}
+
+                      {mapError && <MapErrorBanner />}
                     </div>
 
                     {/* Coords bar */}
                     {(latitude !== 0 || longitude !== 0) && (
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 px-3 py-2 rounded-md">
-                        <MapPin className="h-3 w-3 text-red-500" />
-                        <span className="font-mono">
-                          {latitude?.toFixed(6)}, {longitude?.toFixed(6)}
-                        </span>
-                        {isReverseGeocoding && (
-                          <Loader2 className="h-3 w-3 animate-spin ml-1" />
-                        )}
+                      <div className="bg-muted/50 px-3 py-2 rounded-md">
+                        <CoordsBadge className="text-muted-foreground" />
                       </div>
                     )}
                   </div>
