@@ -1,5 +1,8 @@
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
-import { ACCESS_TOKEN_KEY, ACCESS_TOKEN_MAX_AGE } from "@/constants/storage-keys";
+import {
+  ACCESS_TOKEN_KEY,
+  ACCESS_TOKEN_MAX_AGE,
+} from "@/constants/storage-keys";
 
 export function storeTokenRemember(token: string | undefined): void {
   if (typeof window === "undefined") {
