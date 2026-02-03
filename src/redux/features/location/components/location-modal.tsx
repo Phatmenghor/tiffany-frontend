@@ -142,8 +142,11 @@ export default function LocationModal({
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
   const normalSearchInputRef = useRef<HTMLInputElement>(null);
   const fullscreenSearchInputRef = useRef<HTMLInputElement>(null);
-  const normalAutocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const fullscreenAutocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const normalAutocompleteRef = useRef<google.maps.places.Autocomplete | null>(
+    null,
+  );
+  const fullscreenAutocompleteRef =
+    useRef<google.maps.places.Autocomplete | null>(null);
   const geocodeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const setValueRef = useRef<typeof setValue>(null!);
 
@@ -426,11 +429,18 @@ export default function LocationModal({
     }, 100);
 
     // Setup autocomplete for fullscreen search input when entering fullscreen
-    if (isFullScreen && fullscreenSearchInputRef.current && google.maps.places) {
+    if (
+      isFullScreen &&
+      fullscreenSearchInputRef.current &&
+      google.maps.places
+    ) {
       // Small delay to ensure the input is mounted
       const autocompleteTimeout = setTimeout(() => {
         if (fullscreenSearchInputRef.current) {
-          setupAutocomplete(fullscreenSearchInputRef.current, fullscreenAutocompleteRef);
+          setupAutocomplete(
+            fullscreenSearchInputRef.current,
+            fullscreenAutocompleteRef,
+          );
         }
       }, 150);
       return () => {
@@ -572,9 +582,7 @@ export default function LocationModal({
   );
 
   const CoordsBadge = ({ className = "" }: { className?: string }) => (
-    <div
-      className={`flex items-center gap-2 text-xs ${className}`}
-    >
+    <div className={`flex items-center gap-2 text-xs ${className}`}>
       <MapPin className="h-3 w-3 text-red-500 shrink-0" />
       <span className="font-mono">
         {latitude?.toFixed(6)}, {longitude?.toFixed(6)}
@@ -693,20 +701,22 @@ export default function LocationModal({
         {/*  NORMAL MODAL MODE - Always rendered but hidden when fullscreen */}
         {/* ======================================================== */}
         <div className={isFullScreen ? "invisible h-0 overflow-hidden" : ""}>
-          <FormHeader
-            title={isCreate ? "Add New Location" : "Edit Location"}
-            description={
-              isCreate
-                ? "Move the map to position the pin, then fill in details"
-                : "Update your location information"
-            }
-            isCreate={isCreate}
-          />
+          <div className={isFullScreen ? "h-0 overflow-hidden" : ""}>
+            <FormHeader
+              title={isCreate ? "Add New Location" : "Edit Location"}
+              description={
+                isCreate
+                  ? "Move the map to position the pin, then fill in details"
+                  : "Update your location information"
+              }
+              isCreate={isCreate}
+            />
+          </div>
         </div>
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className={`flex flex-col flex-1 overflow-hidden ${isFullScreen ? "invisible h-0" : ""}`}
+          className={`flex flex-col flex-1 overflow-hidden ${isFullScreen ? "h-0" : ""}`}
         >
           <FormBody>
             {reduxError && (
@@ -762,7 +772,11 @@ export default function LocationModal({
                 >
                   <div
                     ref={mapContainerRef}
-                    className={isFullScreen ? "w-full h-full visible" : "w-full h-[280px]"}
+                    className={
+                      isFullScreen
+                        ? "w-full h-full visible"
+                        : "w-full h-[280px]"
+                    }
                   />
                   {!isFullScreen && <CenterPin />}
 
@@ -788,132 +802,132 @@ export default function LocationModal({
                 )}
               </div>
 
-                  {/* --- Label --- */}
+              {/* --- Label --- */}
+              <TextField
+                control={control}
+                name="label"
+                label="Label"
+                placeholder="e.g., Home, Office, Shop"
+                required
+                disabled={isSubmitting}
+                error={errors.label}
+              />
+
+              {/* --- Address Fields --- */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold">Address Details</h3>
+                <p className="text-xs text-muted-foreground">
+                  Auto-filled from the map. You can edit manually if needed.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <TextField
                     control={control}
-                    name="label"
-                    label="Label"
-                    placeholder="e.g., Home, Office, Shop"
+                    name="houseNumber"
+                    label="House Number"
+                    placeholder="Enter house number"
                     required
                     disabled={isSubmitting}
-                    error={errors.label}
+                    error={errors.houseNumber}
                   />
-
-                  {/* --- Address Fields --- */}
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-semibold">Address Details</h3>
-                    <p className="text-xs text-muted-foreground">
-                      Auto-filled from the map. You can edit manually if needed.
-                    </p>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <TextField
-                        control={control}
-                        name="houseNumber"
-                        label="House Number"
-                        placeholder="Enter house number"
-                        required
-                        disabled={isSubmitting}
-                        error={errors.houseNumber}
-                      />
-                      <TextField
-                        control={control}
-                        name="streetNumber"
-                        label="Street"
-                        placeholder="Enter street"
-                        required
-                        disabled={isSubmitting}
-                        error={errors.streetNumber}
-                      />
-                      <TextField
-                        control={control}
-                        name="village"
-                        label="Village / Sangkat"
-                        placeholder="Enter village"
-                        required
-                        disabled={isSubmitting}
-                        error={errors.village}
-                      />
-                      <TextField
-                        control={control}
-                        name="commune"
-                        label="Commune / City"
-                        placeholder="Enter commune"
-                        required
-                        disabled={isSubmitting}
-                        error={errors.commune}
-                      />
-                      <TextField
-                        control={control}
-                        name="district"
-                        label="District / Khan"
-                        placeholder="Enter district"
-                        required
-                        disabled={isSubmitting}
-                        error={errors.district}
-                      />
-                      <TextField
-                        control={control}
-                        name="province"
-                        label="Province"
-                        placeholder="Enter province"
-                        required
-                        disabled={isSubmitting}
-                        error={errors.province}
-                      />
-                      <TextField
-                        control={control}
-                        name="country"
-                        label="Country"
-                        placeholder="Enter country"
-                        required
-                        disabled={isSubmitting}
-                        error={errors.country}
-                      />
-                    </div>
-                  </div>
-
-                  {/* --- Note --- */}
-                  <TextareaField
+                  <TextField
                     control={control}
-                    name="note"
-                    label="Note"
-                    placeholder="Additional delivery instructions or notes"
-                    rows={3}
+                    name="streetNumber"
+                    label="Street"
+                    placeholder="Enter street"
+                    required
                     disabled={isSubmitting}
-                    error={errors.note}
+                    error={errors.streetNumber}
                   />
-
-                  {/* --- Primary --- */}
-                  <CheckboxField
+                  <TextField
                     control={control}
-                    name="isPrimary"
-                    label="Set as primary location"
+                    name="village"
+                    label="Village / Sangkat"
+                    placeholder="Enter village"
+                    required
                     disabled={isSubmitting}
-                    error={errors.isPrimary}
+                    error={errors.village}
+                  />
+                  <TextField
+                    control={control}
+                    name="commune"
+                    label="Commune / City"
+                    placeholder="Enter commune"
+                    required
+                    disabled={isSubmitting}
+                    error={errors.commune}
+                  />
+                  <TextField
+                    control={control}
+                    name="district"
+                    label="District / Khan"
+                    placeholder="Enter district"
+                    required
+                    disabled={isSubmitting}
+                    error={errors.district}
+                  />
+                  <TextField
+                    control={control}
+                    name="province"
+                    label="Province"
+                    placeholder="Enter province"
+                    required
+                    disabled={isSubmitting}
+                    error={errors.province}
+                  />
+                  <TextField
+                    control={control}
+                    name="country"
+                    label="Country"
+                    placeholder="Enter country"
+                    required
+                    disabled={isSubmitting}
+                    error={errors.country}
                   />
                 </div>
-              </FormBody>
+              </div>
 
-              <FormFooter
-                isSubmitting={isSubmitting}
-                isDirty={isDirty}
-                isCreate={isCreate}
-                createMessage="Creating location..."
-                updateMessage="Updating location..."
-              >
-                <CancelButton onClick={handleClose} disabled={isSubmitting} />
-                <SubmitButton
-                  isSubmitting={isSubmitting}
-                  isDirty={isDirty}
-                  isCreate={isCreate}
-                  createText="Add Location"
-                  updateText="Update Location"
-                  submittingCreateText="Creating..."
-                  submittingUpdateText="Updating..."
-                />
-              </FormFooter>
-            </form>
+              {/* --- Note --- */}
+              <TextareaField
+                control={control}
+                name="note"
+                label="Note"
+                placeholder="Additional delivery instructions or notes"
+                rows={3}
+                disabled={isSubmitting}
+                error={errors.note}
+              />
+
+              {/* --- Primary --- */}
+              <CheckboxField
+                control={control}
+                name="isPrimary"
+                label="Set as primary location"
+                disabled={isSubmitting}
+                error={errors.isPrimary}
+              />
+            </div>
+          </FormBody>
+
+          <FormFooter
+            isSubmitting={isSubmitting}
+            isDirty={isDirty}
+            isCreate={isCreate}
+            createMessage="Creating location..."
+            updateMessage="Updating location..."
+          >
+            <CancelButton onClick={handleClose} disabled={isSubmitting} />
+            <SubmitButton
+              isSubmitting={isSubmitting}
+              isDirty={isDirty}
+              isCreate={isCreate}
+              createText="Add Location"
+              updateText="Update Location"
+              submittingCreateText="Creating..."
+              submittingUpdateText="Updating..."
+            />
+          </FormFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
