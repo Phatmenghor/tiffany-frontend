@@ -3,20 +3,14 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, ShoppingCart, Plus, Minus, Sparkles } from "lucide-react";
+import { Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/utils/common/currency-format";
 import { CustomButton } from "../button/custom-button";
 import { ProductDetailResponseModel } from "@/redux/features/business/store/models/response/product-response";
-import { useCartState } from "@/redux/features/main/store/state/cart-state";
 import { useFavoriteState } from "@/redux/features/main/store/state/favorite-state";
-import {
-  addToCart,
-  updateCartItem,
-  removeFromCart,
-} from "@/redux/features/main/store/thunks/cart-thunks";
 import { toggleFavorite } from "@/redux/features/main/store/thunks/favorite-thunks";
 import { showToast } from "../common/show-toast";
 import { useAuthState } from "@/redux/features/auth/store/state/auth-state";
@@ -32,18 +26,12 @@ interface ProductCardProps {
 const imageLoadedCache = new Set<string>();
 
 export function ProductCard({ product, className }: ProductCardProps) {
-  const { dispatch: cartDispatch, items: cartItems } = useCartState();
   const { dispatch: favoriteDispatch, items: favoriteItems } =
     useFavoriteState();
   const { isAuthenticated } = useAuthState();
 
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
-
-  // Get current cart item for this product
-  const cartItem = cartItems.find((item) => item.productId === product.id);
-  const quantity = cartItem?.quantity || product.quantityInCart || 0;
 
   // Image URL (fallback automatically handled)
   const imageUrl = product.mainImageUrl || appImages.NoImage;
@@ -65,70 +53,6 @@ export function ProductCard({ product, className }: ProductCardProps) {
       setImageError(true);
       setImageLoaded(true); // hide skeleton
       imageLoadedCache.add(appImages.NoImage);
-    }
-  };
-
-  // Cart handlers
-  const handleAddToCart = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!isAuthenticated) {
-      setShowLoginModal(true);
-      return;
-    }
-
-    setIsAddingToCart(true);
-    try {
-      await cartDispatch(
-        addToCart({ productId: product.id, quantity: 1 }),
-      ).unwrap();
-      showToast.success("Added to cart");
-    } catch (error: any) {
-      showToast.error(error?.message || "Failed to add to cart");
-    } finally {
-      setIsAddingToCart(false);
-    }
-  };
-
-  const handleIncrement = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!cartItem) return;
-
-    setIsAddingToCart(true);
-    try {
-      await cartDispatch(
-        updateCartItem({ cartItemId: cartItem.id, quantity: quantity + 1 }),
-      ).unwrap();
-    } catch (error: any) {
-      showToast.error(error?.message || "Failed to update cart");
-    } finally {
-      setIsAddingToCart(false);
-    }
-  };
-
-  const handleDecrement = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!cartItem) return;
-
-    setIsAddingToCart(true);
-    try {
-      if (quantity > 1) {
-        await cartDispatch(
-          updateCartItem({ cartItemId: cartItem.id, quantity: quantity - 1 }),
-        ).unwrap();
-      } else if (quantity === 1) {
-        await cartDispatch(
-          removeFromCart({ cartItemId: cartItem.id }),
-        ).unwrap();
-        showToast.success("Removed from cart");
-      }
-    } catch (error: any) {
-      showToast.error(error?.message || "Failed to update cart");
-    } finally {
-      setIsAddingToCart(false);
     }
   };
 
@@ -159,7 +83,6 @@ export function ProductCard({ product, className }: ProductCardProps) {
   };
 
   const isOutOfStock = product.status === "OUT_OF_STOCK";
-  const isInCart = quantity > 0;
 
   return (
     <>
@@ -248,66 +171,14 @@ export function ProductCard({ product, className }: ProductCardProps) {
           </h3>
 
           <div className="mt-auto">
-            <div className="flex flex-col mb-2">
+            <div className="flex flex-col">
               <span className="text-lg font-bold text-primary">
                 {formatCurrency(product.displayPrice)}
               </span>
-              {/* {product.hasPromotion == true && ( */}
               <span className="text-xs text-muted-foreground line-through">
                 {formatCurrency(product.displayOriginPrice)}
               </span>
-              {/* )} */}
             </div>
-
-            {isInCart ? (
-              <div
-                className="flex items-center gap-2 w-full"
-                onClick={(e) => e.preventDefault()}
-              >
-                <CustomButton
-                  size="icon"
-                  variant="outline"
-                  className="h-8 w-8 shrink-0 hover:bg-destructive hover:text-destructive-foreground"
-                  onClick={handleDecrement}
-                  disabled={isAddingToCart}
-                >
-                  <Minus className="h-3 w-3" />
-                </CustomButton>
-
-                <div className="flex-1 text-center h-8 px-2 bg-primary/10 text-primary font-semibold text-sm rounded border border-primary/20 flex items-center justify-center">
-                  {quantity}
-                </div>
-
-                <CustomButton
-                  size="icon"
-                  variant="outline"
-                  className="h-8 w-8 shrink-0 hover:bg-primary hover:text-primary-foreground"
-                  onClick={handleIncrement}
-                  disabled={isAddingToCart}
-                >
-                  <Plus className="h-3 w-3" />
-                </CustomButton>
-              </div>
-            ) : (
-              <CustomButton
-                className="w-full gap-2"
-                onClick={handleAddToCart}
-                disabled={isAddingToCart || isOutOfStock}
-                size="sm"
-              >
-                {isAddingToCart ? (
-                  <>
-                    <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span className="text-xs">Adding...</span>
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="h-4 w-4" />
-                    <span className="text-xs font-semibold">Add to Cart</span>
-                  </>
-                )}
-              </CustomButton>
-            )}
           </div>
         </div>
       </div>
