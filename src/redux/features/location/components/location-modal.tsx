@@ -756,13 +756,13 @@ export default function LocationModal({
                 <div
                   className={`relative ${
                     isFullScreen
-                      ? "fixed inset-0 z-[49] top-[105px]" // Position below fullscreen header+search, z-49 to be under overlay UI
+                      ? "fixed inset-0 z-[49] top-[105px] visible" // Position below fullscreen header+search, z-49 to be under overlay UI, visible to override parent's invisible
                       : "rounded-lg overflow-hidden border"
                   }`}
                 >
                   <div
                     ref={mapContainerRef}
-                    className={isFullScreen ? "w-full h-full" : "w-full h-[280px]"}
+                    className={isFullScreen ? "w-full h-full visible" : "w-full h-[280px]"}
                   />
                   {!isFullScreen && <CenterPin />}
 
