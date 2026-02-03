@@ -4,11 +4,10 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Eye, EyeOff, Loader2, Lock, Mail, User, Phone } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -22,53 +21,29 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuthState } from "@/redux/features/auth/store/state/auth-state";
 import { loginService } from "@/redux/features/auth/store/thunks/auth-thunks";
 import { showToast } from "@/components/shared/common/show-toast";
-import { SocialAuthConfig } from "@/constants/app-resource/default/default";
-import { useAppSelector } from "@/redux/store";
+import { RegisterModal } from "./register-modal";
 
 interface LoginModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-// Login form schema
 const loginSchema = z.object({
   userIdentifier: z.string().min(1, "Email or username is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-// Register form schema
-const registerSchema = z
-  .object({
-    userIdentifier: z
-      .string()
-      .min(1, "Email is required")
-      .email("Invalid email"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string().min(8, "Please confirm your password"),
-    firstName: z.string().optional(),
-    lastName: z.string().optional(),
-    phoneNumber: z.string().optional(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
-
 type LoginFormData = z.infer<typeof loginSchema>;
-type RegisterFormData = z.infer<typeof registerSchema>;
 
 export function LoginModal({ open, onOpenChange }: LoginModalProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [activeTab, setActiveTab] = useState<"login" | "register">("login");
+  const [showRegister, setShowRegister] = useState(false);
 
   const { isLoading, dispatch } = useAuthState();
 
-  // Login form
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -77,20 +52,6 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
     },
   });
 
-  // Register form
-  const registerForm = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      userIdentifier: "",
-      password: "",
-      confirmPassword: "",
-      firstName: "",
-      lastName: "",
-      phoneNumber: "",
-    },
-  });
-
-  // Handle login submit
   async function onLoginSubmit(values: LoginFormData) {
     try {
       await dispatch(
@@ -109,18 +70,6 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
     }
   }
 
-  // Handle register submit
-  async function onRegisterSubmit(values: RegisterFormData) {
-    try {
-      showToast.success("Account created! Please log in.");
-      setActiveTab("login");
-      registerForm.reset();
-      loginForm.setValue("userIdentifier", values.userIdentifier);
-    } catch (err: any) {
-      showToast.error(err || "Registration failed. Please try again.");
-    }
-  }
-
   const handleKeyPress = (
     e: React.KeyboardEvent<HTMLInputElement>,
     submitFn: () => void,
@@ -130,31 +79,37 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
     }
   };
 
+  const handleSwitchToRegister = () => {
+    onOpenChange(false);
+    setTimeout(() => setShowRegister(true), 150);
+  };
+
+  const handleBackToLogin = () => {
+    setShowRegister(false);
+    setTimeout(() => onOpenChange(true), 150);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">
-            {activeTab === "login" ? "Welcome Back" : "Create Account"}
-          </DialogTitle>
-          <DialogDescription>
-            {activeTab === "login"
-              ? "Sign in to your account to continue shopping"
-              : "Create a new account to start shopping"}
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[420px] p-0 overflow-hidden border-0 shadow-2xl">
+          {/* Header with gradient background */}
+          <div className="bg-gradient-to-br from-primary/90 to-primary px-6 pt-8 pb-6 text-center">
+            <div className="mx-auto w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-4">
+              <Lock className="h-7 w-7 text-white" />
+            </div>
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-white">
+                Welcome Back
+              </DialogTitle>
+            </DialogHeader>
+            <p className="text-white/80 text-sm mt-1">
+              Sign in to continue shopping
+            </p>
+          </div>
 
-        <Tabs
-          value={activeTab}
-          onValueChange={(v) => setActiveTab(v as "login" | "register")}
-        >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Sign In</TabsTrigger>
-            <TabsTrigger value="register">Register</TabsTrigger>
-          </TabsList>
-
-          {/* Login Tab */}
-          <TabsContent value="login" className="space-y-4 mt-4">
+          {/* Form */}
+          <div className="px-6 pb-6 pt-5">
             <Form {...loginForm}>
               <form
                 onSubmit={loginForm.handleSubmit(onLoginSubmit)}
@@ -165,9 +120,8 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                   name="userIdentifier"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
+                      <FormLabel className="text-sm font-medium">
                         Email or Username
-                        <span className="text-red-500 ml-1">*</span>
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
@@ -176,7 +130,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                             {...field}
                             type="text"
                             placeholder="name@example.com"
-                            className="pl-10"
+                            className="pl-10 h-11"
                             onKeyDown={(e) =>
                               handleKeyPress(
                                 e,
@@ -196,9 +150,8 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
+                      <FormLabel className="text-sm font-medium">
                         Password
-                        <span className="text-red-500 ml-1">*</span>
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
@@ -207,7 +160,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                             {...field}
                             type={showPassword ? "text" : "password"}
                             placeholder="Enter your password"
-                            className="pl-10 pr-10"
+                            className="pl-10 pr-10 h-11"
                             onKeyDown={(e) =>
                               handleKeyPress(
                                 e,
@@ -217,7 +170,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                           />
                           <button
                             type="button"
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                             onClick={() => setShowPassword(!showPassword)}
                           >
                             {showPassword ? (
@@ -233,217 +186,54 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
                   )}
                 />
 
-                <Button type="submit" className="w-full">
+                <Button
+                  type="submit"
+                  className="w-full h-11 text-sm font-semibold"
+                  disabled={isLoading}
+                >
                   {isLoading && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  {isLoading ? "Signing in..." : "Sign in"}
+                  {isLoading ? "Signing in..." : "Sign In"}
                 </Button>
               </form>
             </Form>
 
-            {/* Divider */}
-            <div className="relative">
+            {/* Separator */}
+            <div className="relative my-5">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-background px-3 text-muted-foreground">
+                  New here?
                 </span>
               </div>
             </div>
-          </TabsContent>
 
-          {/* Register Tab */}
-          <TabsContent value="register" className="space-y-4 mt-4">
-            <Form {...registerForm}>
-              <form
-                onSubmit={registerForm.handleSubmit(onRegisterSubmit)}
-                className="space-y-4"
-              >
-                {/* Name fields in a row */}
-                <div className="grid grid-cols-2 gap-3">
-                  <FormField
-                    control={registerForm.control}
-                    name="firstName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>First Name</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              {...field}
-                              placeholder="John"
-                              className="pl-10"
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={registerForm.control}
-                    name="lastName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Last Name</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Doe" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={registerForm.control}
-                  name="userIdentifier"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Email
-                        <span className="text-red-500 ml-1">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            {...field}
-                            type="email"
-                            placeholder="name@example.com"
-                            className="pl-10"
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={registerForm.control}
-                  name="phoneNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            {...field}
-                            type="tel"
-                            placeholder="+855 12 345 678"
-                            className="pl-10"
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={registerForm.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Password
-                        <span className="text-red-500 ml-1">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            {...field}
-                            type={showPassword ? "text" : "password"}
-                            placeholder="Min 8 characters"
-                            className="pl-10 pr-10"
-                          />
-                          <button
-                            type="button"
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                            onClick={() => setShowPassword(!showPassword)}
-                          >
-                            {showPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={registerForm.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Confirm Password
-                        <span className="text-red-500 ml-1">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            {...field}
-                            type={showConfirmPassword ? "text" : "password"}
-                            placeholder="Confirm your password"
-                            className="pl-10 pr-10"
-                          />
-                          <button
-                            type="button"
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                            onClick={() =>
-                              setShowConfirmPassword(!showConfirmPassword)
-                            }
-                          >
-                            {showConfirmPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button type="submit" className="w-full">
-                  {isLoading && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  {isLoading ? "Creating account..." : "Create Account"}
-                </Button>
-              </form>
-            </Form>
-
-            {/* Divider */}
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or register with
-                </span>
-              </div>
+            {/* Create account link */}
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">
+                Don&apos;t have an account?{" "}
+                <button
+                  type="button"
+                  onClick={handleSwitchToRegister}
+                  className="text-primary font-semibold hover:underline transition-colors"
+                >
+                  Create Account
+                </button>
+              </p>
             </div>
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
-    </Dialog>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Register Modal */}
+      <RegisterModal
+        open={showRegister}
+        onOpenChange={setShowRegister}
+        onBackToLogin={handleBackToLogin}
+      />
+    </>
   );
 }

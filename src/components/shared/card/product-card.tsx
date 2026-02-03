@@ -21,6 +21,7 @@ import { toggleFavorite } from "@/redux/features/main/store/thunks/favorite-thun
 import { showToast } from "../common/show-toast";
 import { useAuthState } from "@/redux/features/auth/store/state/auth-state";
 import { appImages } from "@/constants/app-resource/icons/app-images";
+import { LoginModal } from "../modal/login-modal";
 
 interface ProductCardProps {
   product: ProductDetailResponseModel;
@@ -38,6 +39,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   // Get current cart item for this product
   const cartItem = cartItems.find((item) => item.productId === product.id);
@@ -72,7 +74,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
     e.stopPropagation();
 
     if (!isAuthenticated) {
-      showToast.error("Please login to add items to cart");
+      setShowLoginModal(true);
       return;
     }
 
@@ -136,7 +138,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
     e.stopPropagation();
 
     if (!isAuthenticated) {
-      showToast.error("Please login to add to favorites");
+      setShowLoginModal(true);
       return;
     }
 
@@ -160,6 +162,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
   const isInCart = quantity > 0;
 
   return (
+    <>
     <Link href={`/products/${product.id}`}>
       <div
         className={cn(
@@ -309,5 +312,8 @@ export function ProductCard({ product, className }: ProductCardProps) {
         </div>
       </div>
     </Link>
+
+    <LoginModal open={showLoginModal} onOpenChange={setShowLoginModal} />
+    </>
   );
 }

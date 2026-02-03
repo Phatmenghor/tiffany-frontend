@@ -33,6 +33,7 @@ import { CustomButton } from "@/components/shared/button/custom-button";
 import { cn } from "@/lib/utils";
 import { useScrollToTop } from "@/hooks/use-scroll-restoration";
 import { showToast } from "@/components/shared/common/show-toast";
+import { LoginModal } from "@/components/shared/modal/login-modal";
 
 interface ProductSize {
   id: string;
@@ -60,6 +61,7 @@ export default function ProductDetailPage() {
   const isLoading = loading.detail;
 
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   // Scroll to top on mount (detail page should always start at top)
   useScrollToTop();
@@ -182,7 +184,7 @@ export default function ProductDetailPage() {
   // Toggle favorite handler
   const handleToggleFavorite = async () => {
     if (!isAuthenticated) {
-      showToast.error("Please login to add to favorites");
+      setShowLoginModal(true);
       return;
     }
     if (!product) return;
@@ -217,6 +219,7 @@ export default function ProductDetailPage() {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Back Button */}
@@ -518,6 +521,9 @@ export default function ProductDetailPage() {
         )}
       </div>
     </div>
+
+    <LoginModal open={showLoginModal} onOpenChange={setShowLoginModal} />
+    </>
   );
 }
 
