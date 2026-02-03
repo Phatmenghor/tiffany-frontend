@@ -3,22 +3,30 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft } from "lucide-react";
+import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft, CreditCard } from "lucide-react";
 import { useCartState } from "@/redux/features/main/store/state/cart-state";
 import { useAuthState } from "@/redux/features/auth/store/state/auth-state";
-import { fetchCart, updateCartItem, removeFromCart, clearCart } from "@/redux/features/main/store/thunks/cart-thunks";
+import { fetchCart, updateCartItem, clearCart } from "@/redux/features/main/store/thunks/cart-thunks";
 import { CustomButton } from "@/components/shared/button/custom-button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/utils/common/currency-format";
 import { showToast } from "@/components/shared/common/show-toast";
-import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 export default function CartPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuthState();
-  const { dispatch, items, totalItems, subtotal, discount, total, loading, loaded } = useCartState();
+  const {
+    dispatch,
+    items,
+    totalItems,
+    totalOriginalPrice,
+    totalDiscount,
+    totalPayment,
+    loading,
+    loaded,
+  } = useCartState();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -32,17 +40,39 @@ export default function CartPage() {
     }
   }, [isAuthenticated, loaded, loading.fetch, dispatch, router]);
 
-  const handleUpdateQuantity = async (cartItemId: string, newQuantity: number) => {
+  const handleUpdateQuantity = async (
+    productId: string,
+    productSizeId: string | null,
+    newQuantity: number
+  ) => {
     try {
-      await dispatch(updateCartItem({ cartItemId, quantity: newQuantity })).unwrap();
+      await dispatch(
+        updateCartItem({
+          productId,
+          productSizeId,
+          quantity: newQuantity,
+        })
+      ).unwrap();
+      if (newQuantity === 0) {
+        showToast.success("Item removed from cart");
+      }
     } catch (error: any) {
       showToast.error(error?.message || "Failed to update cart");
     }
   };
 
-  const handleRemoveItem = async (cartItemId: string) => {
+  const handleRemoveItem = async (
+    productId: string,
+    productSizeId: string | null
+  ) => {
     try {
-      await dispatch(removeFromCart({ cartItemId })).unwrap();
+      await dispatch(
+        updateCartItem({
+          productId,
+          productSizeId,
+          quantity: 0,
+        })
+      ).unwrap();
       showToast.success("Item removed from cart");
     } catch (error: any) {
       showToast.error(error?.message || "Failed to remove item");
@@ -58,6 +88,12 @@ export default function CartPage() {
     } catch (error: any) {
       showToast.error(error?.message || "Failed to clear cart");
     }
+  };
+
+  const handleCheckout = () => {
+    // TODO: Navigate to checkout page
+    showToast.success("Proceeding to checkout...");
+    // router.push("/checkout");
   };
 
   if (loading.fetch && !loaded) {
@@ -89,9 +125,14 @@ export default function CartPage() {
           </div>
           <h1 className="text-3xl font-bold mb-4">Your Cart is Empty</h1>
           <p className="text-muted-foreground mb-8">
-            Looks like you haven't added any items to your cart yet. Start shopping to fill it up!
+            Looks like you haven&apos;t added any items to your cart yet. Start
+            shopping to fill it up!
           </p>
-          <CustomButton onClick={() => router.push("/products")} size="lg" className="gap-2">
+          <CustomButton
+            onClick={() => router.push("/products")}
+            size="lg"
+            className="gap-2"
+          >
             <ShoppingBag className="h-5 w-5" />
             Continue Shopping
           </CustomButton>
@@ -131,10 +172,16 @@ export default function CartPage() {
               >
                 <div className="flex gap-4">
                   {/* Product Image */}
-                  <Link href={`/products/${item.productId}`} className="flex-shrink-0">
+                  <Link
+                    href={`/products/${item.productId}`}
+                    className="flex-shrink-0"
+                  >
                     <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden bg-muted">
                       <Image
-                        src={item.productImage || `https://picsum.photos/200/200?random=${item.productId}`}
+                        src={
+                          item.productMainImageUrl ||
+                          `https://picsum.photos/200/200?random=${item.productId}`
+                        }
                         alt={item.productName}
                         fill
                         className="object-cover"
@@ -149,23 +196,28 @@ export default function CartPage() {
                         {item.productName}
                       </h3>
                     </Link>
-                    {item.sizeName && (
-                      <p className="text-xs text-muted-foreground mb-2">Size: {item.sizeName}</p>
+                    {item.productSizeName && (
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Size: {item.productSizeName}
+                      </p>
                     )}
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="font-bold text-primary">{formatCurrency(item.displayPrice)}</span>
-                      {item.hasPromotion && item.displayOriginPrice > item.displayPrice && (
-                        <>
-                          <span className="text-xs text-muted-foreground line-through">
-                            {formatCurrency(item.displayOriginPrice)}
-                          </span>
-                          <Badge variant="destructive" className="text-xs">
-                            {item.promotionType === "PERCENTAGE"
-                              ? `-${item.promotionValue}%`
-                              : `-${formatCurrency(item.promotionValue || 0)}`}
-                          </Badge>
-                        </>
-                      )}
+                      <span className="font-bold text-primary">
+                        {formatCurrency(item.displayPrice)}
+                      </span>
+                      {item.hasActivePromotion &&
+                        item.originalPrice > item.displayPrice && (
+                          <>
+                            <span className="text-xs text-muted-foreground line-through">
+                              {formatCurrency(item.originalPrice)}
+                            </span>
+                            <Badge variant="destructive" className="text-xs">
+                              {item.promotionType === "PERCENTAGE"
+                                ? `-${item.promotionValue}%`
+                                : `-${formatCurrency(item.promotionValue || 0)}`}
+                            </Badge>
+                          </>
+                        )}
                     </div>
 
                     {/* Quantity Controls */}
@@ -175,8 +227,14 @@ export default function CartPage() {
                           size="icon"
                           variant="outline"
                           className="h-8 w-8"
-                          onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
-                          disabled={loading.update || item.quantity <= 1}
+                          onClick={() =>
+                            handleUpdateQuantity(
+                              item.productId,
+                              item.productSizeId,
+                              item.quantity - 1
+                            )
+                          }
+                          disabled={loading.update}
                         >
                           <Minus className="h-3 w-3" />
                         </CustomButton>
@@ -187,7 +245,13 @@ export default function CartPage() {
                           size="icon"
                           variant="outline"
                           className="h-8 w-8"
-                          onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                          onClick={() =>
+                            handleUpdateQuantity(
+                              item.productId,
+                              item.productSizeId,
+                              item.quantity + 1
+                            )
+                          }
                           disabled={loading.update}
                         >
                           <Plus className="h-3 w-3" />
@@ -196,8 +260,10 @@ export default function CartPage() {
                       <CustomButton
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleRemoveItem(item.id)}
-                        disabled={loading.remove}
+                        onClick={() =>
+                          handleRemoveItem(item.productId, item.productSizeId)
+                        }
+                        disabled={loading.update}
                         className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -208,7 +274,14 @@ export default function CartPage() {
 
                   {/* Item Total */}
                   <div className="hidden sm:block text-right">
-                    <p className="font-bold text-lg">{formatCurrency(item.totalPrice)}</p>
+                    <p className="font-bold text-lg">
+                      {formatCurrency(item.totalPrice)}
+                    </p>
+                    {item.quantity > 1 && (
+                      <p className="text-xs text-muted-foreground">
+                        {formatCurrency(item.displayPrice)} each
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -235,13 +308,19 @@ export default function CartPage() {
 
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal ({totalItems} items)</span>
-                  <span className="font-semibold">{formatCurrency(subtotal)}</span>
+                  <span className="text-muted-foreground">
+                    Subtotal ({totalItems} items)
+                  </span>
+                  <span className="font-semibold">
+                    {formatCurrency(totalOriginalPrice)}
+                  </span>
                 </div>
-                {discount > 0 && (
+                {totalDiscount > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Discount</span>
-                    <span className="font-semibold text-green-600">-{formatCurrency(discount)}</span>
+                    <span className="font-semibold text-green-600">
+                      -{formatCurrency(totalDiscount)}
+                    </span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
@@ -251,15 +330,32 @@ export default function CartPage() {
                 <div className="border-t pt-4">
                   <div className="flex justify-between items-center">
                     <span className="text-lg font-bold">Total</span>
-                    <span className="text-2xl font-bold text-primary">{formatCurrency(total)}</span>
+                    <span className="text-2xl font-bold text-primary">
+                      {formatCurrency(totalPayment)}
+                    </span>
                   </div>
+                  {totalDiscount > 0 && (
+                    <p className="text-xs text-green-600 text-right mt-1">
+                      You save {formatCurrency(totalDiscount)}!
+                    </p>
+                  )}
                 </div>
               </div>
 
-              <CustomButton className="w-full mb-3" size="lg">
+              <CustomButton
+                className="w-full mb-3 gap-2"
+                size="lg"
+                onClick={handleCheckout}
+              >
+                <CreditCard className="h-5 w-5" />
                 Proceed to Checkout
               </CustomButton>
-              <CustomButton variant="outline" className="w-full gap-2" onClick={() => router.push("/products")}>
+              <CustomButton
+                variant="outline"
+                className="w-full gap-2"
+                onClick={() => router.push("/products")}
+              >
+                <ShoppingBag className="h-4 w-4" />
                 Continue Shopping
               </CustomButton>
             </div>

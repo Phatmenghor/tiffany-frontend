@@ -1,11 +1,11 @@
 export interface AddToCartRequest {
   productId: string;
+  productSizeId?: string | null;
   quantity: number;
-  productSizeId?: string;
 }
 
 export interface UpdateCartItemRequest {
   productId: string;
+  productSizeId?: string | null;
   quantity: number;
-  productSizeId?: string;
 }

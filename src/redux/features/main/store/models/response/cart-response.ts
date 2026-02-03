@@ -5,6 +5,7 @@ export interface CartResponseModel {
   totalDiscount: number;
   totalPayment: number;
 }
+
 export interface CartItemModel {
   id: string;
   createdAt: string;
@@ -14,8 +15,8 @@ export interface CartItemModel {
   productId: string;
   productName: string;
   productMainImageUrl: string;
-  productSizeId: string;
-  productSizeName: string;
+  productSizeId: string | null;
+  productSizeName: string | null;
   quantity: number;
   originalPrice: number;
   displayPrice: number;
@@ -28,5 +29,8 @@ export interface CartItemModel {
   promotionFromDate: string;
   promotionToDate: string;
   hasActivePromotion: boolean;
-  note: string;
+  note: string | null;
 }
+
+// Backward compatible alias
+export type CartItemResponseModel = CartItemModel;

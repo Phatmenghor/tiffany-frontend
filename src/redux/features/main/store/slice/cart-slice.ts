@@ -3,25 +3,23 @@ import {
   fetchCart,
   addToCart,
   updateCartItem,
-  removeFromCart,
   clearCart,
 } from "../thunks/cart-thunks";
 import {
   CartResponseModel,
-  CartItemResponseModel,
+  CartItemModel,
 } from "../models/response/cart-response";
 
 interface CartState {
-  items: CartItemResponseModel[];
+  items: CartItemModel[];
   totalItems: number;
-  subtotal: number;
-  discount: number;
-  total: number;
+  totalOriginalPrice: number;
+  totalDiscount: number;
+  totalPayment: number;
   loading: {
     fetch: boolean;
     add: boolean;
     update: boolean;
-    remove: boolean;
     clear: boolean;
   };
   error: string | null;
@@ -31,18 +29,29 @@ interface CartState {
 const initialState: CartState = {
   items: [],
   totalItems: 0,
-  subtotal: 0,
-  discount: 0,
-  total: 0,
+  totalOriginalPrice: 0,
+  totalDiscount: 0,
+  totalPayment: 0,
   loading: {
     fetch: false,
     add: false,
     update: false,
-    remove: false,
     clear: false,
   },
   error: null,
   loaded: false,
+};
+
+// Helper to update cart state from response
+const updateCartFromResponse = (
+  state: CartState,
+  response: CartResponseModel
+) => {
+  state.items = response.items || [];
+  state.totalItems = response.totalItems || 0;
+  state.totalOriginalPrice = response.totalOriginalPrice || 0;
+  state.totalDiscount = response.totalDiscount || 0;
+  state.totalPayment = response.totalPayment || 0;
 };
 
 const cartSlice = createSlice({
@@ -52,24 +61,45 @@ const cartSlice = createSlice({
     resetCart: (state) => {
       state.items = [];
       state.totalItems = 0;
-      state.subtotal = 0;
-      state.discount = 0;
-      state.total = 0;
+      state.totalOriginalPrice = 0;
+      state.totalDiscount = 0;
+      state.totalPayment = 0;
       state.loaded = false;
       state.error = null;
     },
     updateLocalCartItem: (
       state,
-      action: PayloadAction<{ cartItemId: string; quantity: number }>
+      action: PayloadAction<{
+        productId: string;
+        productSizeId?: string | null;
+        quantity: number;
+      }>
     ) => {
-      const item = state.items.find((i) => i.id === action.payload.cartItemId);
+      const item = state.items.find(
+        (i) =>
+          i.productId === action.payload.productId &&
+          i.productSizeId === action.payload.productSizeId
+      );
       if (item) {
-        item.quantity = action.payload.quantity;
-        item.totalPrice = item.displayPrice * action.payload.quantity;
+        if (action.payload.quantity <= 0) {
+          // Remove item
+          state.items = state.items.filter((i) => i.id !== item.id);
+        } else {
+          item.quantity = action.payload.quantity;
+          item.totalPrice = item.displayPrice * action.payload.quantity;
+          item.totalOriginalPrice = item.originalPrice * action.payload.quantity;
+        }
         // Recalculate totals
         state.totalItems = state.items.reduce((sum, i) => sum + i.quantity, 0);
-        state.subtotal = state.items.reduce((sum, i) => sum + i.totalPrice, 0);
-        state.total = state.subtotal - state.discount;
+        state.totalOriginalPrice = state.items.reduce(
+          (sum, i) => sum + i.totalOriginalPrice,
+          0
+        );
+        state.totalPayment = state.items.reduce(
+          (sum, i) => sum + i.totalPrice,
+          0
+        );
+        state.totalDiscount = state.totalOriginalPrice - state.totalPayment;
       }
     },
   },
@@ -84,11 +114,7 @@ const cartSlice = createSlice({
         fetchCart.fulfilled,
         (state, action: PayloadAction<CartResponseModel>) => {
           state.loading.fetch = false;
-          state.items = action.payload.items || [];
-          state.totalItems = action.payload.totalItems || 0;
-          state.subtotal = action.payload.subtotal || 0;
-          state.discount = action.payload.discount || 0;
-          state.total = action.payload.total || 0;
+          updateCartFromResponse(state, action.payload);
           state.loaded = true;
           state.error = null;
         }
@@ -105,26 +131,10 @@ const cartSlice = createSlice({
       })
       .addCase(
         addToCart.fulfilled,
-        (state, action: PayloadAction<CartItemResponseModel>) => {
+        (state, action: PayloadAction<CartResponseModel>) => {
           state.loading.add = false;
-          // Check if item already exists
-          const existingItemIndex = state.items.findIndex(
-            (item) => item.id === action.payload.id
-          );
-          if (existingItemIndex >= 0) {
-            state.items[existingItemIndex] = action.payload;
-          } else {
-            state.items.push(action.payload);
-          }
-          state.totalItems = state.items.reduce(
-            (sum, item) => sum + item.quantity,
-            0
-          );
-          state.subtotal = state.items.reduce(
-            (sum, item) => sum + item.totalPrice,
-            0
-          );
-          state.total = state.subtotal - state.discount;
+          updateCartFromResponse(state, action.payload);
+          state.loaded = true;
           state.error = null;
         }
       )
@@ -140,54 +150,15 @@ const cartSlice = createSlice({
       })
       .addCase(
         updateCartItem.fulfilled,
-        (state, action: PayloadAction<CartItemResponseModel>) => {
+        (state, action: PayloadAction<CartResponseModel>) => {
           state.loading.update = false;
-          const index = state.items.findIndex(
-            (item) => item.id === action.payload.id
-          );
-          if (index >= 0) {
-            state.items[index] = action.payload;
-          }
-          state.totalItems = state.items.reduce(
-            (sum, item) => sum + item.quantity,
-            0
-          );
-          state.subtotal = state.items.reduce(
-            (sum, item) => sum + item.totalPrice,
-            0
-          );
-          state.total = state.subtotal - state.discount;
+          updateCartFromResponse(state, action.payload);
           state.error = null;
         }
       )
       .addCase(updateCartItem.rejected, (state, action) => {
         state.loading.update = false;
         state.error = action.error.message || "Failed to update cart item";
-      })
-
-      // Remove from Cart
-      .addCase(removeFromCart.pending, (state) => {
-        state.loading.remove = true;
-        state.error = null;
-      })
-      .addCase(removeFromCart.fulfilled, (state, action) => {
-        state.loading.remove = false;
-        const cartItemId = action.meta.arg.cartItemId;
-        state.items = state.items.filter((item) => item.id !== cartItemId);
-        state.totalItems = state.items.reduce(
-          (sum, item) => sum + item.quantity,
-          0
-        );
-        state.subtotal = state.items.reduce(
-          (sum, item) => sum + item.totalPrice,
-          0
-        );
-        state.total = state.subtotal - state.discount;
-        state.error = null;
-      })
-      .addCase(removeFromCart.rejected, (state, action) => {
-        state.loading.remove = false;
-        state.error = action.error.message || "Failed to remove item from cart";
       })
 
       // Clear Cart
@@ -199,9 +170,9 @@ const cartSlice = createSlice({
         state.loading.clear = false;
         state.items = [];
         state.totalItems = 0;
-        state.subtotal = 0;
-        state.discount = 0;
-        state.total = 0;
+        state.totalOriginalPrice = 0;
+        state.totalDiscount = 0;
+        state.totalPayment = 0;
         state.error = null;
       })
       .addCase(clearCart.rejected, (state, action) => {

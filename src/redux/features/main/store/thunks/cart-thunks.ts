@@ -3,13 +3,10 @@ import { createApiThunk } from "@/utils/axios/api-wrapper";
 import {
   AddToCartRequest,
   UpdateCartItemRequest,
-  RemoveFromCartRequest,
 } from "../models/request/cart-request";
-import {
-  CartResponseModel,
-  CartItemResponseModel,
-} from "../models/response/cart-response";
+import { CartResponseModel } from "../models/response/cart-response";
 
+// GET /api/v1/cart - fetch all cart items
 export const fetchCart = createApiThunk<CartResponseModel, void>(
   "cart/fetchCart",
   async () => {
@@ -18,32 +15,25 @@ export const fetchCart = createApiThunk<CartResponseModel, void>(
   }
 );
 
-export const addToCart = createApiThunk<CartItemResponseModel, AddToCartRequest>(
+// POST /api/v1/cart - add/update item (quantity 0 = remove)
+export const addToCart = createApiThunk<CartResponseModel, AddToCartRequest>(
   "cart/addToCart",
   async (data) => {
-    const response = await axiosClientWithAuth.post("/api/v1/cart/add", data);
+    const response = await axiosClientWithAuth.post("/api/v1/cart", data);
     return response.data.data;
   }
 );
 
+// POST /api/v1/cart - update quantity (quantity 0 = remove)
 export const updateCartItem = createApiThunk<
-  CartItemResponseModel,
+  CartResponseModel,
   UpdateCartItemRequest
 >("cart/updateCartItem", async (data) => {
-  const response = await axiosClientWithAuth.put(
-    `/api/v1/cart/update/${data.cartItemId}`,
-    { quantity: data.quantity }
-  );
+  const response = await axiosClientWithAuth.post("/api/v1/cart", data);
   return response.data.data;
 });
 
-export const removeFromCart = createApiThunk<void, RemoveFromCartRequest>(
-  "cart/removeFromCart",
-  async (data) => {
-    await axiosClientWithAuth.delete(`/api/v1/cart/remove/${data.cartItemId}`);
-  }
-);
-
+// DELETE /api/v1/cart/clear - clear entire cart
 export const clearCart = createApiThunk<void, void>(
   "cart/clearCart",
   async () => {
