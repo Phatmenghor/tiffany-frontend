@@ -10,7 +10,7 @@ import {
 import { clearSelectedProduct } from "@/redux/features/main/store/slice/public-product-slice";
 import { usePublicProductState } from "@/redux/features/main/store/state/public-product-state";
 import { useAuthState } from "@/redux/features/auth/store/state/auth-state";
-import { useWishlistState } from "@/redux/features/main/store/state/wishlist-state";
+import { useFavoriteState } from "@/redux/features/main/store/state/favorite-state";
 import { toggleFavorite } from "@/redux/features/main/store/thunks/favorite-thunks";
 import { ProductCard } from "@/components/shared/card/product-card";
 import { Button } from "@/components/ui/button";
@@ -53,7 +53,7 @@ export default function ProductDetailPage() {
 
   const { dispatch, selectedProduct, loading } = usePublicProductState();
   const { isAuthenticated } = useAuthState();
-  const { dispatch: wishlistDispatch } = useWishlistState();
+  const { dispatch: favoriteDispatch } = useFavoriteState();
 
   const productId = params.id as string;
   const product = selectedProduct;
@@ -182,7 +182,7 @@ export default function ProductDetailPage() {
   // Toggle favorite handler
   const handleToggleFavorite = async () => {
     if (!isAuthenticated) {
-      showToast.error("Please login to add to wishlist");
+      showToast.error("Please login to add to favorites");
       return;
     }
     if (!product) return;
@@ -190,14 +190,14 @@ export default function ProductDetailPage() {
     setIsTogglingFavorite(true);
     try {
       const wasFavorited = product.isFavorited;
-      await wishlistDispatch(
+      await favoriteDispatch(
         toggleFavorite({ productId: product.id }),
       ).unwrap();
       showToast.success(
-        wasFavorited ? "Removed from wishlist" : "Added to wishlist",
+        wasFavorited ? "Removed from favorites" : "Added to favorites",
       );
     } catch (error: any) {
-      showToast.error(error?.message || "Failed to update wishlist");
+      showToast.error(error?.message || "Failed to update favorites");
     } finally {
       setIsTogglingFavorite(false);
     }
@@ -472,7 +472,7 @@ export default function ProductDetailPage() {
                       product.isFavorited && "fill-current",
                     )}
                   />
-                  {product.isFavorited ? "Wishlisted" : "Wishlist"}
+                  {product.isFavorited ? "Favorited" : "Favorite"}
                 </CustomButton>
                 <CustomButton size="lg" variant="outline" className="h-12">
                   <Share2 className="h-5 w-5 mr-2" />

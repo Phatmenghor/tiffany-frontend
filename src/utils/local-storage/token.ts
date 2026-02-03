@@ -1,8 +1,10 @@
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
-
-// Cookie names
-const ACCESS_TOKEN_KEY = "auth-token-client";
-const REFRESH_TOKEN_KEY = "auth-refresh-token";
+import {
+  ACCESS_TOKEN_KEY,
+  REFRESH_TOKEN_KEY,
+  ACCESS_TOKEN_MAX_AGE,
+  REFRESH_TOKEN_MAX_AGE,
+} from "@/constants/storage-keys";
 
 export function storeTokenRemember(token: string | undefined): void {
   if (typeof window === "undefined") {
@@ -22,7 +24,7 @@ export function storeToken(token: string | undefined): void {
     return;
   }
 
-  setCookie(ACCESS_TOKEN_KEY, token);
+  setCookie(ACCESS_TOKEN_KEY, token, { maxAge: ACCESS_TOKEN_MAX_AGE });
 }
 
 /**
@@ -33,8 +35,7 @@ export function storeRefreshToken(refreshToken: string | undefined): void {
     return;
   }
 
-  // Store refresh token with longer expiry (30 days)
-  setCookie(REFRESH_TOKEN_KEY, refreshToken, { maxAge: 30 * 24 * 60 * 60 });
+  setCookie(REFRESH_TOKEN_KEY, refreshToken, { maxAge: REFRESH_TOKEN_MAX_AGE });
 }
 
 /**

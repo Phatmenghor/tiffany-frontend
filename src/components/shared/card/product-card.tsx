@@ -11,7 +11,7 @@ import { formatCurrency } from "@/utils/common/currency-format";
 import { CustomButton } from "../button/custom-button";
 import { ProductDetailResponseModel } from "@/redux/features/business/store/models/response/product-response";
 import { useCartState } from "@/redux/features/main/store/state/cart-state";
-import { useWishlistState } from "@/redux/features/main/store/state/wishlist-state";
+import { useFavoriteState } from "@/redux/features/main/store/state/favorite-state";
 import {
   addToCart,
   updateCartItem,
@@ -32,8 +32,8 @@ const imageLoadedCache = new Set<string>();
 
 export function ProductCard({ product, className }: ProductCardProps) {
   const { dispatch: cartDispatch, items: cartItems } = useCartState();
-  const { dispatch: wishlistDispatch, items: wishlistItems } =
-    useWishlistState();
+  const { dispatch: favoriteDispatch, items: favoriteItems } =
+    useFavoriteState();
   const { isAuthenticated } = useAuthState();
 
   const [isAddingToCart, setIsAddingToCart] = useState(false);
@@ -130,27 +130,27 @@ export function ProductCard({ product, className }: ProductCardProps) {
     }
   };
 
-  // Wishlist handler - toggle only (auto add/remove)
+  // Favorite handler - toggle only (auto add/remove)
   const handleToggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (!isAuthenticated) {
-      showToast.error("Please login to add to wishlist");
+      showToast.error("Please login to add to favorites");
       return;
     }
 
     setIsTogglingFavorite(true);
     try {
       const wasFavorited = product?.isFavorited;
-      await wishlistDispatch(
+      await favoriteDispatch(
         toggleFavorite({ productId: product.id }),
       ).unwrap();
       showToast.success(
-        wasFavorited ? "Removed from wishlist" : "Added to wishlist",
+        wasFavorited ? "Removed from favorites" : "Added to favorites",
       );
     } catch (error: any) {
-      showToast.error(error?.message || "Failed to update wishlist");
+      showToast.error(error?.message || "Failed to update favorites");
     } finally {
       setIsTogglingFavorite(false);
     }

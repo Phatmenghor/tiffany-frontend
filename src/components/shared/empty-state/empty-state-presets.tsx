@@ -59,11 +59,11 @@ export const EmptyStatePresets = {
     description: "Add some products to get started",
   } as PresetConfig,
 
-  // Empty wishlist
-  emptyWishlist: {
+  // Empty favorites
+  emptyFavorites: {
     icon: Heart,
-    title: "Your wishlist is empty",
-    description: "Save your favorite items to your wishlist",
+    title: "Your favorites is empty",
+    description: "Save your favorite items to your favorites",
   } as PresetConfig,
 
   // No orders

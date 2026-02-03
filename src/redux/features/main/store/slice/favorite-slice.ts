@@ -32,7 +32,7 @@ const initialState: FavoriteState = {
 };
 
 const favoriteSlice = createSlice({
-  name: "wishlist",
+  name: "favorites",
   initialState,
   reducers: {
     resetFavorites: () => initialState,

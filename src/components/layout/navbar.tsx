@@ -25,7 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { CustomButton } from "../shared/button/custom-button";
 import { useAuthState } from "@/redux/features/auth/store/state/auth-state";
 import { useCartState } from "@/redux/features/main/store/state/cart-state";
-import { useWishlistState } from "@/redux/features/main/store/state/wishlist-state";
+import { useFavoriteState } from "@/redux/features/main/store/state/favorite-state";
 import { logout } from "@/redux/features/auth/store/slice/auth-slice";
 import { showToast } from "@/components/shared/common/show-toast";
 import { clearToken } from "@/utils/local-storage/token";
@@ -57,9 +57,9 @@ export function Navbar() {
   const { isAuthenticated, profile, fullName, email, profileImage, dispatch } =
     useAuthState();
 
-  // Cart and wishlist state
+  // Cart and favorites state
   const { totalItems: cartItemCount } = useCartState();
-  const { totalItems: wishlistItemCount } = useWishlistState();
+  const { totalItems: favoriteItemCount } = useFavoriteState();
 
   // Debounce search query
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
@@ -146,9 +146,9 @@ export function Navbar() {
           onClick: () => router.push("/orders"),
         },
         {
-          label: "Wishlist",
+          label: "Favorites",
           icon: <Heart className="h-4 w-4" />,
-          onClick: () => router.push("/wishlist"),
+          onClick: () => router.push("/favorites"),
         },
         {
           label: "Payment Methods",
@@ -282,15 +282,15 @@ export function Navbar() {
                 variant="ghost"
                 size="icon"
                 className="relative hover:text-primary"
-                onClick={() => router.push("/wishlist")}
+                onClick={() => router.push("/favorites")}
               >
                 <Heart className="h-5 w-5" />
-                {wishlistItemCount > 0 && (
+                {favoriteItemCount > 0 && (
                   <Badge
                     variant="destructive"
                     className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
                   >
-                    {wishlistItemCount}
+                    {favoriteItemCount}
                   </Badge>
                 )}
               </CustomButton>

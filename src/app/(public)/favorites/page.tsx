@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Heart, ShoppingCart, Trash2, ArrowLeft } from "lucide-react";
-import { useWishlistState } from "@/redux/features/main/store/state/wishlist-state";
+import { useFavoriteState } from "@/redux/features/main/store/state/favorite-state";
 import { useCartState } from "@/redux/features/main/store/state/cart-state";
 import { useAuthState } from "@/redux/features/auth/store/state/auth-state";
 import { isAuthenticated as checkTokenExists } from "@/utils/local-storage/token";
@@ -18,10 +18,10 @@ import { ProductCardSkeleton } from "@/components/shared/skeletons/product-card-
 import { CustomButton } from "@/components/shared/button/custom-button";
 import { showToast } from "@/components/shared/common/show-toast";
 
-export default function WishlistPage() {
+export default function FavoritesPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuthState();
-  const { dispatch, items, totalItems, loading, loaded } = useWishlistState();
+  const { dispatch, items, totalItems, loading, loaded } = useFavoriteState();
   const { dispatch: cartDispatch } = useCartState();
 
   useEffect(() => {
@@ -32,9 +32,9 @@ export default function WishlistPage() {
   const handleRemoveOne = async (productId: string) => {
     try {
       await dispatch(toggleFavorite({ productId })).unwrap();
-      showToast.success("Removed from wishlist");
+      showToast.success("Removed from favorites");
     } catch (error: any) {
-      showToast.error(error?.message || "Failed to remove from wishlist");
+      showToast.error(error?.message || "Failed to remove from favorites");
     }
   };
 
@@ -81,7 +81,7 @@ export default function WishlistPage() {
           <div className="flex items-center justify-center w-24 h-24 rounded-full bg-red-50 mx-auto mb-6">
             <Heart className="h-12 w-12 text-red-500" />
           </div>
-          <h1 className="text-3xl font-bold mb-4">Your Wishlist is Empty</h1>
+          <h1 className="text-3xl font-bold mb-4">Your Favorites is Empty</h1>
           <p className="text-muted-foreground mb-8">
             Save your favorite items here to buy them later or share with
             friends
@@ -105,7 +105,7 @@ export default function WishlistPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold mb-2">My Wishlist</h1>
+            <h1 className="text-3xl font-bold mb-2">My Favorites</h1>
             <p className="text-muted-foreground">
               {totalItems} {totalItems === 1 ? "item" : "items"} saved
             </p>
@@ -137,7 +137,7 @@ export default function WishlistPage() {
           </div>
         </div>
 
-        {/* Wishlist Items Grid */}
+        {/* Favorites Items Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {items.map((product) => (
             <div key={product.id} className="relative group">

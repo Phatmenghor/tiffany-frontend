@@ -1,10 +1,11 @@
 // src/middleware.ts
 import { NextRequest, NextResponse } from "next/server";
 import { locales, defaultLocale } from "./i18n/request";
+import { ACCESS_TOKEN_KEY } from "@/constants/storage-keys";
 
 export default function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const token = req.cookies.get("auth-token-client")?.value;
+  const token = req.cookies.get(ACCESS_TOKEN_KEY)?.value;
 
   // -----------------------------
   // Locale handling
