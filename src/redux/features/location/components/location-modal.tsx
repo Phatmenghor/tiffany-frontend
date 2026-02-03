@@ -140,7 +140,10 @@ export default function LocationModal({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const googleMapRef = useRef<google.maps.Map | null>(null);
   const geocoderRef = useRef<google.maps.Geocoder | null>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const normalSearchInputRef = useRef<HTMLInputElement>(null);
+  const fullscreenSearchInputRef = useRef<HTMLInputElement>(null);
+  const normalAutocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const fullscreenAutocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const geocodeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const setValueRef = useRef<typeof setValue>(null!);
 
@@ -274,6 +277,39 @@ export default function LocationModal({
   }, [reverseGeocode]);
 
   // ------------------------------------------------------------------
+  // Setup autocomplete for a search input
+  // ------------------------------------------------------------------
+  const setupAutocomplete = useCallback(
+    (
+      input: HTMLInputElement,
+      autocompleteRef: React.MutableRefObject<google.maps.places.Autocomplete | null>,
+    ) => {
+      const map = googleMapRef.current;
+      if (!map || !google.maps.places) return;
+
+      // Clear existing autocomplete if any
+      if (autocompleteRef.current) {
+        google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      }
+
+      const autocomplete = new google.maps.places.Autocomplete(input, {
+        types: ["geocode", "establishment"],
+      });
+      autocomplete.bindTo("bounds", map);
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        if (place.geometry?.location) {
+          map.setCenter(place.geometry.location);
+          map.setZoom(17);
+          // idle event will fire automatically after setCenter
+        }
+      });
+      autocompleteRef.current = autocomplete;
+    },
+    [],
+  );
+
+  // ------------------------------------------------------------------
   // Initialize Google Map
   // ------------------------------------------------------------------
   const initMap = useCallback(
@@ -306,24 +342,12 @@ export default function LocationModal({
       // Initial reverse geocode
       reverseGeocode(lat, lng);
 
-      // Places search autocomplete
-      if (searchInputRef.current && google.maps.places) {
-        const autocomplete = new google.maps.places.Autocomplete(
-          searchInputRef.current,
-          { types: ["geocode", "establishment"] },
-        );
-        autocomplete.bindTo("bounds", map);
-        autocomplete.addListener("place_changed", () => {
-          const place = autocomplete.getPlace();
-          if (place.geometry?.location) {
-            map.setCenter(place.geometry.location);
-            map.setZoom(17);
-            // idle event will fire automatically after setCenter
-          }
-        });
+      // Setup autocomplete for normal search input
+      if (normalSearchInputRef.current && google.maps.places) {
+        setupAutocomplete(normalSearchInputRef.current, normalAutocompleteRef);
       }
     },
-    [onMapIdle, reverseGeocode],
+    [onMapIdle, reverseGeocode, setupAutocomplete],
   );
 
   // ------------------------------------------------------------------
@@ -378,9 +402,45 @@ export default function LocationModal({
       if (geocodeTimeoutRef.current) clearTimeout(geocodeTimeoutRef.current);
       googleMapRef.current = null;
       geocoderRef.current = null;
+      normalAutocompleteRef.current = null;
+      fullscreenAutocompleteRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMapReady]);
+
+  // ------------------------------------------------------------------
+  // Handle fullscreen mode changes - resize map and setup autocomplete
+  // ------------------------------------------------------------------
+  useEffect(() => {
+    const map = googleMapRef.current;
+    if (!map || !isMapReady) return;
+
+    // Trigger map resize after DOM updates
+    const resizeTimeout = setTimeout(() => {
+      google.maps.event.trigger(map, "resize");
+      // Re-center the map after resize
+      const center = map.getCenter();
+      if (center) {
+        map.setCenter(center);
+      }
+    }, 100);
+
+    // Setup autocomplete for fullscreen search input when entering fullscreen
+    if (isFullScreen && fullscreenSearchInputRef.current && google.maps.places) {
+      // Small delay to ensure the input is mounted
+      const autocompleteTimeout = setTimeout(() => {
+        if (fullscreenSearchInputRef.current) {
+          setupAutocomplete(fullscreenSearchInputRef.current, fullscreenAutocompleteRef);
+        }
+      }, 150);
+      return () => {
+        clearTimeout(resizeTimeout);
+        clearTimeout(autocompleteTimeout);
+      };
+    }
+
+    return () => clearTimeout(resizeTimeout);
+  }, [isFullScreen, isMapReady, setupAutocomplete]);
 
   // ------------------------------------------------------------------
   // Reset form when modal opens
@@ -545,19 +605,19 @@ export default function LocationModal({
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent
-        className={`p-0 flex flex-col transition-all duration-300 ${
+        className={`p-0 flex flex-col transition-all duration-300 overflow-hidden ${
           isFullScreen
             ? "w-screen max-w-none h-screen max-h-none rounded-none m-0"
             : "w-[95%] max-w-4xl max-h-[90vh]"
         }`}
       >
         {/* ============================================================ */}
-        {/*  FULL-SCREEN MAP MODE                                        */}
+        {/*  FULL-SCREEN MAP MODE OVERLAY (without map - map stays in normal position) */}
         {/* ============================================================ */}
-        {isFullScreen ? (
-          <div className="flex flex-col h-full">
+        {isFullScreen && (
+          <div className="absolute inset-0 z-50 flex flex-col bg-background">
             {/* Top bar */}
-            <div className="flex items-center justify-between px-4 py-3 border-b bg-background z-10">
+            <div className="flex items-center justify-between px-4 py-3 border-b bg-background z-10 shrink-0">
               <h2 className="text-lg font-semibold">Select Location</h2>
               <div className="flex items-center gap-2">
                 <Button
@@ -582,11 +642,11 @@ export default function LocationModal({
             </div>
 
             {/* Search */}
-            <div className="px-4 py-2 border-b bg-background z-10">
+            <div className="px-4 py-2 border-b bg-background z-10 shrink-0">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  ref={searchInputRef}
+                  ref={fullscreenSearchInputRef}
                   type="text"
                   placeholder="Search for a place..."
                   className="pl-10"
@@ -595,9 +655,8 @@ export default function LocationModal({
               </div>
             </div>
 
-            {/* Map */}
-            <div className="flex-1 relative">
-              <div ref={mapContainerRef} className="w-full h-full" />
+            {/* Fullscreen map area - the actual map div is portaled here via fixed positioning */}
+            <div className="flex-1 relative" id="fullscreen-map-area">
               <CenterPin size="h-10 w-10" />
 
               {/* Coords */}
@@ -606,7 +665,7 @@ export default function LocationModal({
               </div>
 
               {!isMapReady && !mapError && (
-                <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                <div className="absolute inset-0 flex items-center justify-center bg-muted z-20">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
               )}
@@ -614,98 +673,106 @@ export default function LocationModal({
               {mapError && <MapErrorBanner />}
             </div>
           </div>
-        ) : (
-          <>
-            {/* ======================================================== */}
-            {/*  NORMAL MODAL MODE                                       */}
-            {/* ======================================================== */}
-            <FormHeader
-              title={isCreate ? "Add New Location" : "Edit Location"}
-              description={
-                isCreate
-                  ? "Move the map to position the pin, then fill in details"
-                  : "Update your location information"
-              }
-              isCreate={isCreate}
-            />
+        )}
 
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className="flex flex-col flex-1 overflow-hidden"
-            >
-              <FormBody>
-                {reduxError && (
-                  <div className="p-3 bg-destructive/10 border border-destructive rounded-lg">
-                    <p className="text-sm text-destructive font-medium">
-                      {reduxError}
-                    </p>
+        {/* ======================================================== */}
+        {/*  NORMAL MODAL MODE - Always rendered but hidden when fullscreen */}
+        {/* ======================================================== */}
+        <div className={isFullScreen ? "invisible h-0 overflow-hidden" : ""}>
+          <FormHeader
+            title={isCreate ? "Add New Location" : "Edit Location"}
+            description={
+              isCreate
+                ? "Move the map to position the pin, then fill in details"
+                : "Update your location information"
+            }
+            isCreate={isCreate}
+          />
+        </div>
+
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className={`flex flex-col flex-1 overflow-hidden ${isFullScreen ? "invisible h-0" : ""}`}
+        >
+          <FormBody>
+            {reduxError && (
+              <div className="p-3 bg-destructive/10 border border-destructive rounded-lg">
+                <p className="text-sm text-destructive font-medium">
+                  {reduxError}
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-5">
+              {/* --- Map Section --- */}
+              <div className="space-y-2">
+                {/* Search + actions */}
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      ref={normalSearchInputRef}
+                      type="text"
+                      placeholder="Search for a place..."
+                      className="pl-10"
+                      autoComplete="off"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={handleMyLocation}
+                    title="My Location"
+                  >
+                    <LocateFixed className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsFullScreen(true)}
+                    title="Full Screen Map"
+                  >
+                    <Maximize2 className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Map with center pin - ALWAYS rendered, uses fixed position when fullscreen */}
+                <div
+                  className={`relative ${
+                    isFullScreen
+                      ? "fixed inset-0 z-[49] top-[105px]" // Position below fullscreen header+search, z-49 to be under overlay UI
+                      : "rounded-lg overflow-hidden border"
+                  }`}
+                >
+                  <div
+                    ref={mapContainerRef}
+                    className={isFullScreen ? "w-full h-full" : "w-full h-[280px]"}
+                  />
+                  {!isFullScreen && <CenterPin />}
+
+                  {!isFullScreen && !isMapReady && !mapError && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                      <div className="flex flex-col items-center gap-2">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <span className="text-sm text-muted-foreground">
+                          Loading map...
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {!isFullScreen && mapError && <MapErrorBanner />}
+                </div>
+
+                {/* Coords bar */}
+                {!isFullScreen && (latitude !== 0 || longitude !== 0) && (
+                  <div className="bg-muted/50 px-3 py-2 rounded-md">
+                    <CoordsBadge className="text-muted-foreground" />
                   </div>
                 )}
-
-                <div className="space-y-5">
-                  {/* --- Map Section --- */}
-                  <div className="space-y-2">
-                    {/* Search + actions */}
-                    <div className="flex items-center gap-2">
-                      <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          ref={searchInputRef}
-                          type="text"
-                          placeholder="Search for a place..."
-                          className="pl-10"
-                          autoComplete="off"
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={handleMyLocation}
-                        title="My Location"
-                      >
-                        <LocateFixed className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setIsFullScreen(true)}
-                        title="Full Screen Map"
-                      >
-                        <Maximize2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-
-                    {/* Map with center pin */}
-                    <div className="relative rounded-lg overflow-hidden border">
-                      <div
-                        ref={mapContainerRef}
-                        className="w-full h-[280px]"
-                      />
-                      <CenterPin />
-
-                      {!isMapReady && !mapError && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-muted">
-                          <div className="flex flex-col items-center gap-2">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                            <span className="text-sm text-muted-foreground">
-                              Loading map...
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      {mapError && <MapErrorBanner />}
-                    </div>
-
-                    {/* Coords bar */}
-                    {(latitude !== 0 || longitude !== 0) && (
-                      <div className="bg-muted/50 px-3 py-2 rounded-md">
-                        <CoordsBadge className="text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
+              </div>
 
                   {/* --- Label --- */}
                   <TextField
@@ -731,6 +798,7 @@ export default function LocationModal({
                         name="houseNumber"
                         label="House Number"
                         placeholder="Enter house number"
+                        required
                         disabled={isSubmitting}
                         error={errors.houseNumber}
                       />
@@ -739,6 +807,7 @@ export default function LocationModal({
                         name="streetNumber"
                         label="Street"
                         placeholder="Enter street"
+                        required
                         disabled={isSubmitting}
                         error={errors.streetNumber}
                       />
@@ -747,6 +816,7 @@ export default function LocationModal({
                         name="village"
                         label="Village / Sangkat"
                         placeholder="Enter village"
+                        required
                         disabled={isSubmitting}
                         error={errors.village}
                       />
@@ -755,6 +825,7 @@ export default function LocationModal({
                         name="commune"
                         label="Commune / City"
                         placeholder="Enter commune"
+                        required
                         disabled={isSubmitting}
                         error={errors.commune}
                       />
@@ -763,6 +834,7 @@ export default function LocationModal({
                         name="district"
                         label="District / Khan"
                         placeholder="Enter district"
+                        required
                         disabled={isSubmitting}
                         error={errors.district}
                       />
@@ -771,6 +843,7 @@ export default function LocationModal({
                         name="province"
                         label="Province"
                         placeholder="Enter province"
+                        required
                         disabled={isSubmitting}
                         error={errors.province}
                       />
@@ -779,6 +852,7 @@ export default function LocationModal({
                         name="country"
                         label="Country"
                         placeholder="Enter country"
+                        required
                         disabled={isSubmitting}
                         error={errors.country}
                       />
@@ -826,8 +900,6 @@ export default function LocationModal({
                 />
               </FormFooter>
             </form>
-          </>
-        )}
       </DialogContent>
     </Dialog>
   );
