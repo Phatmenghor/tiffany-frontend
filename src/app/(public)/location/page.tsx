@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "@/redux/store";
 import {
   selectLocations,
@@ -42,6 +42,27 @@ export default function LocationPage() {
   const [deletingLocation, setDeletingLocation] =
     useState<LocationResponseModel | null>(null);
   const [settingPrimaryId, setSettingPrimaryId] = useState<string | null>(null);
+  const [currentCoords, setCurrentCoords] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+
+  // Ask for location permission on page load
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setCurrentCoords({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      },
+      (error) => {
+        console.log("Location permission denied or unavailable:", error.message);
+      },
+    );
+  }, []);
 
   // Fetch locations on mount
   useEffect(() => {
@@ -100,10 +121,10 @@ export default function LocationPage() {
     }
   };
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
     setEditingLocation(null);
-  };
+  }, []);
 
   const formatAddress = (location: LocationResponseModel) => {
     const parts = [
@@ -274,11 +295,12 @@ export default function LocationPage() {
         )}
       </div>
 
-      {/* Add/Edit Modal */}
+      {/* Add/Edit Modal - pass current coords so "Add" defaults to user location */}
       <LocationModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         editData={editingLocation}
+        initialCoords={currentCoords}
       />
 
       {/* Delete Confirmation Modal */}
