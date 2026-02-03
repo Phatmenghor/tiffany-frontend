@@ -27,60 +27,18 @@ export enum UserRole {
   CUSTOMER = "CUSTOMER",
 }
 
-export enum UserPlatformRole {
-  PLATFORM_OWNER = "PLATFORM_OWNER",
-  PLATFORM_ADMIN = "PLATFORM_ADMIN",
-  PLATFORM_MANAGER = "PLATFORM_MANAGER",
-  PLATFORM_SUPPORT = "PLATFORM_SUPPORT",
-}
-
-export enum BusinessUserRole {
-  BUSINESS_OWNER = "BUSINESS_OWNER",
-  BUSINESS_MANAGER = "BUSINESS_MANAGER",
-  BUSINESS_STAFF = "BUSINESS_STAFF",
-
-  CUSTOMER = "CUSTOMER",
-}
-
-export enum SubscriptionPlanStatus {
+export enum Payment {
   ALL = "ALL",
-  PUBLIC = "PUBLIC",
-  PRIVATE = "PRIVATE",
+
+  CASH = "CASH",
+  BANK = "BANK",
 }
 
-export enum UserGropeType {
+export enum PromotionType {
   ALL = "ALL",
-  PLATFORM_USER = "PLATFORM_USER",
-  BUSINESS_USER = "BUSINESS_USER",
-  CUSTOMER = "CUSTOMER",
-}
-
-export enum BusinessUserType {
-  BUSINESS_USER = "BUSINESS_USER",
-  CUSTOMER = "CUSTOMER",
-}
-
-export enum BusinessStatus {
-  ALL = "ALL",
-  PENDING = "PENDING",
-  ACTIVE = "ACTIVE",
-  INACTIVE = "INACTIVE",
-  SUSPENDED = "SUSPENDED",
-}
-
-export enum SubscriptionStatus {
-  ALL = "ALL",
-  SUBSCRIBED = "SUBSCRIBED",
-  NONE_SUBSCRIBE = "NONE_SUBSCRIBE",
-  ACTIVE = "ACTIVE",
-  EXPIRED = "EXPIRED",
-  EXPIRING_SOON = "EXPIRING_SOON",
-}
-
-export enum ExchangeRateStatus {
-  ALL = "ALL",
-  ACTIVE = "ACTIVE",
-  INACTIVE = "INACTIVE",
+  PERCENTAGE = "PERCENTAGE",
+  FIXED_AMOUNT = "FIXED_AMOUNT",
+  NONE = "NONE",
 }
 
 export enum PaymentStatus {
@@ -91,31 +49,9 @@ export enum PaymentStatus {
   CANCELLED = "CANCELLED",
 }
 
-export enum PaymentMethod {
-  CASH = "CASH",
-  BANK_TRANSFER = "BANK_TRANSFER",
-  ONLINE = "ONLINE",
-  OTHER = "OTHER",
-}
-
-export enum PaymentType {
-  SUBSCRIPTION = "SUBSCRIPTION",
-  USER_PLAN = "USER_PLAN",
-  BUSINESS_RECORD = "BUSINESS_RECORD",
-  REFUND = "REFUND",
-  OTHER = "OTHER",
-}
-
 export enum ProductStatus {
   ALL = "ALL",
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE",
   OUT_OF_STOCK = "OUT_OF_STOCK",
-}
-
-export enum PromotionType {
-  ALL = "ALL",
-  PERCENTAGE = "PERCENTAGE",
-  FIXED_AMOUNT = "FIXED_AMOUNT",
-  NONE = "NONE",
 }

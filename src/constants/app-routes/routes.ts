@@ -28,6 +28,7 @@ export const ROUTES = {
     PRODUCTS: "/admin/products",
     PRODUCTS_PROMOTION: "/admin/product-promotions",
     ABOUT_US: "/admin/about-us",
+    PAYMENT: "/admin/payment",
   },
 } as const;
 
@@ -78,6 +79,10 @@ export const SIDEBAR_MENU: MenuItem[] = [
       {
         title: "Categories",
         href: ROUTES.ADMIN.CATEGORIES,
+      },
+      {
+        title: "Payment",
+        href: ROUTES.ADMIN.PAYMENT,
       },
     ],
   },
