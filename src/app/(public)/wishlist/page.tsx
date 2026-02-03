@@ -24,21 +24,9 @@ export default function WishlistPage() {
   const { dispatch, items, totalItems, loading, loaded } = useWishlistState();
   const { dispatch: cartDispatch } = useCartState();
 
-  // Check cookie token as fallback (Redux may not be hydrated yet on refresh)
-  const hasToken = checkTokenExists();
-
   useEffect(() => {
-    if (!isAuthenticated && !hasToken) {
-      router.push("/");
-      showToast.error("Please login to view your wishlist");
-      return;
-    }
-
-    // Always re-fetch fresh data when visiting wishlist page
-    if ((isAuthenticated || hasToken) && !loading.fetch) {
-      dispatch(fetchFavoriteList());
-    }
-  }, [isAuthenticated, hasToken, dispatch, router]);
+    dispatch(fetchFavoriteList());
+  }, [isAuthenticated, dispatch, router]);
 
   // Service 3: Remove one favorite
   const handleRemoveOne = async (productId: string) => {
