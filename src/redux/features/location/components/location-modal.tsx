@@ -610,6 +610,20 @@ export default function LocationModal({
             ? "w-screen max-w-none h-screen max-h-none rounded-none m-0"
             : "w-[95%] max-w-4xl max-h-[90vh]"
         }`}
+        onInteractOutside={(e) => {
+          // Prevent dialog from closing when clicking on Google Places autocomplete dropdown
+          const target = e.target as HTMLElement;
+          if (target.closest(".pac-container")) {
+            e.preventDefault();
+          }
+        }}
+        onPointerDownOutside={(e) => {
+          // Prevent dialog from closing when clicking on Google Places autocomplete dropdown
+          const target = e.target as HTMLElement;
+          if (target.closest(".pac-container")) {
+            e.preventDefault();
+          }
+        }}
       >
         {/* ============================================================ */}
         {/*  FULL-SCREEN MAP MODE OVERLAY (without map - map stays in normal position) */}

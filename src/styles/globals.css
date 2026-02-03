@@ -482,11 +482,22 @@ body.route-changing #nprogress .peg {
 /* Google Places Autocomplete dropdown - ensure it appears above dialogs/modals */
 .pac-container {
   z-index: 10000 !important;
+  pointer-events: auto !important;
   background-color: hsl(var(--card)) !important;
   border: 1px solid hsl(var(--border)) !important;
   border-radius: var(--radius) !important;
   box-shadow: var(--shadow-lg) !important;
   font-family: inherit !important;
+}
+
+/* Ensure the dialog overlay doesn't block the autocomplete dropdown */
+[data-radix-popper-content-wrapper] {
+  z-index: 10001 !important;
+}
+
+/* Allow pointer events on pac-container even when dialog is open */
+body:has([data-state="open"]) .pac-container {
+  pointer-events: auto !important;
 }
 
 .pac-item {
